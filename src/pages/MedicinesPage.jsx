@@ -1,4 +1,5 @@
 import { Pill, X } from 'lucide-react'
+import GuidedFormAssistant from '../components/GuidedFormAssistant'
 import RecordActions from '../components/RecordActions'
 import { DOSE_PERIODS, getDoseStatus, getDoseTime, isDosePeriodEnabled } from '../lib/medicineSchedule'
 import { formatStockAmount, getBufferStock, isStockLow, isStockTracked } from '../lib/medicineStock'
@@ -14,6 +15,16 @@ function MedicinesPage({ medicines, members, medicineForm, setMedicineForm, save
     })
   }
 
+  const assistantSteps = [
+    { title: 'What medicine are you adding?', prompt: 'Use the name printed on the medicine label or prescription.', fields: [{ field: 'name', label: 'Medicine name', placeholder: 'Example: Metformin', required: true }] },
+    { title: 'What are the dosage instructions?', prompt: 'Copy the strength or directions from the label. MedLoop will not guess a dose.', fields: [{ field: 'dosage', label: 'Dosage or instructions', placeholder: 'Example: 500 mg after food' }], hint: 'Leave this blank if the label does not provide clear instructions.' },
+    { title: 'When should reminders appear?', prompt: 'Choose every interval that applies to this medicine.', multiChoice: { field: 'enabledDosePeriods', min: 1, error: 'Choose at least one reminder interval.', options: DOSE_PERIODS.map((period) => ({ value: period.id, label: period.label, caption: `Use the selected ${period.label.toLowerCase()} time` })) } },
+    { title: 'Choose exact reminder times', prompt: 'These times are used for exact Android alarms.', timeGroup: { enabledField: 'enabledDosePeriods', options: DOSE_PERIODS.map((period) => ({ value: period.id, label: period.label, field: period.timeField })) } },
+    { title: 'Who is this medicine for?', prompt: 'Assign it to a care profile, or keep it in your personal routine.', fields: [{ field: 'memberId', label: 'Assigned profile', options: [{ value: '', label: 'Personal routine' }, ...members.map((member) => ({ value: member.id, label: member.name }))] }] },
+    { title: 'Would you like stock tracking?', prompt: 'This is optional. Add the amount currently available to receive low-stock guidance.', fields: [{ field: 'stockRemaining', label: 'Current stock', type: 'number', inputMode: 'numeric', min: '0', placeholder: 'Example: 30' }, { field: 'stockUnitLabel', label: 'Stock unit', placeholder: 'tablets' }] },
+    { kicker: 'Final check', title: 'Review before saving', prompt: 'Confirm these details match the medicine label. You can go back to change anything.', summary: (form) => [{ label: 'Medicine', value: form.name }, { label: 'Dosage', value: form.dosage }, { label: 'Intervals', value: (form.enabledDosePeriods || []).map((id) => DOSE_PERIODS.find((period) => period.id === id)?.label).filter(Boolean).join(', ') }, { label: 'Stock', value: form.stockRemaining ? `${form.stockRemaining} ${form.stockUnitLabel || 'units'}` : 'Not tracked' }] },
+  ]
+
   return (
     <section className="content-grid form-layout">
       <section className="panel-card form-panel">
@@ -21,6 +32,7 @@ function MedicinesPage({ medicines, members, medicineForm, setMedicineForm, save
           <div><p className="section-kicker">Medication routine</p><h2>{medicineForm.id ? 'Edit medicine' : 'Add medicine'}</h2></div>
           {medicineForm.id ? <button className="icon-btn" onClick={resetMedicineForm} title="Cancel editing" type="button" aria-label="Cancel editing"><X size={16} /></button> : <Pill size={20} />}
         </div>
+        <GuidedFormAssistant description="I’ll guide you through the label details and reminder schedule without making medical assumptions." form={medicineForm} setForm={setMedicineForm} steps={assistantSteps} targetFormId="medicine-form-submit" title="Add a medicine with confidence" voiceSrc="/audio/assist-medicine-clear.mp3" />
         <form className="form-stack" onSubmit={saveMedicine}>
           <label className="field"><span>Medicine</span><input value={medicineForm.name} onChange={(event) => setMedicineForm({ ...medicineForm, name: event.target.value })} placeholder="Medicine name" required /></label>
           <label className="field"><span>Dosage</span><input value={medicineForm.dosage} onChange={(event) => setMedicineForm({ ...medicineForm, dosage: event.target.value })} placeholder="Dosage" /></label>
@@ -46,7 +58,7 @@ function MedicinesPage({ medicines, members, medicineForm, setMedicineForm, save
           </div>
           <label className="field"><span>Refill status</span><select value={medicineForm.refill} onChange={(event) => setMedicineForm({ ...medicineForm, refill: event.target.value })} aria-label="Refill status"><option>On track</option><option>Running low</option><option>Refill needed</option></select></label>
           {formFeedback ? <p className="helper-text">{formFeedback}</p> : null}
-          <button className="primary-btn" type="submit">{medicineForm.id ? 'Update medicine' : 'Add medicine'}</button>
+          <button className="primary-btn" data-assistant-target="medicine-form-submit" type="submit">{medicineForm.id ? 'Update medicine' : 'Add medicine'}</button>
         </form>
       </section>
 

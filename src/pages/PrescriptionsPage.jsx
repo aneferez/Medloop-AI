@@ -1,4 +1,5 @@
 import { Camera, FileImage, FileText, ImageUp, Trash2, X } from 'lucide-react'
+import GuidedFormAssistant from '../components/GuidedFormAssistant'
 import RecordActions from '../components/RecordActions'
 
 function PrescriptionsPage({
@@ -17,17 +18,25 @@ function PrescriptionsPage({
   uploadPrescriptionImageFile,
   removePrescriptionImage,
 }) {
+  const assistantSteps = [
+    { title: 'Who issued the prescription?', prompt: 'Enter the doctor’s name exactly as shown on the prescription.', fields: [{ field: 'doctor', label: 'Doctor', placeholder: 'Doctor name', required: true }] },
+    { title: 'Where was it issued?', prompt: 'Add the clinic or hospital so the record is easier to find later.', fields: [{ field: 'clinic', label: 'Clinic or hospital', placeholder: 'Clinic or hospital' }] },
+    { title: 'What should you remember?', prompt: 'Copy relevant written instructions. MedLoop will not interpret or change medical directions.', fields: [{ field: 'notes', label: 'Instructions', type: 'textarea', placeholder: 'Write the prescription instructions here' }] },
+    { kicker: 'Final check', title: 'Review the written record', prompt: 'Save this first, then add an image with Camera or Upload.', summary: (form) => [{ label: 'Doctor', value: form.doctor }, { label: 'Clinic', value: form.clinic }, { label: 'Instructions', value: form.notes }] },
+  ]
+
   return (
     <section className="content-grid form-layout">
       <section className="panel-card form-panel">
         <div className="section-header"><div><p className="section-kicker">Prescription records</p><h2>{prescriptionForm.id ? 'Edit prescription' : 'Add prescription'}</h2></div>{prescriptionForm.id ? <button className="icon-btn" onClick={resetPrescriptionForm} title="Cancel editing" type="button" aria-label="Cancel editing"><X size={16} /></button> : <FileText size={20} />}</div>
+        <GuidedFormAssistant description="I’ll help capture the written details accurately before you add a camera or gallery image." form={prescriptionForm} setForm={setPrescriptionForm} steps={assistantSteps} targetFormId="prescription-form-submit" title="Save a prescription safely" voiceSrc="/audio/assist-prescription-clear.mp3" />
         <form className="form-stack" onSubmit={savePrescription}>
           <label className="field"><span>Doctor</span><input value={prescriptionForm.doctor} onChange={(event) => setPrescriptionForm({ ...prescriptionForm, doctor: event.target.value })} placeholder="Doctor name" required /></label>
           <label className="field"><span>Clinic or hospital</span><input value={prescriptionForm.clinic} onChange={(event) => setPrescriptionForm({ ...prescriptionForm, clinic: event.target.value })} placeholder="Clinic or hospital" /></label>
           <label className="field"><span>Instructions</span><textarea value={prescriptionForm.notes} onChange={(event) => setPrescriptionForm({ ...prescriptionForm, notes: event.target.value })} placeholder="Write the prescription instruction here" rows="4" /></label>
           <p className="helper-text">Save the prescription first, then use its Camera or Upload button. Images remain on this device and are limited to 10 MB.</p>
           {formFeedback ? <p className="helper-text">{formFeedback}</p> : null}
-          <button className="primary-btn" type="submit">{prescriptionForm.id ? 'Update prescription' : 'Save prescription'}</button>
+          <button className="primary-btn" data-assistant-target="prescription-form-submit" type="submit">{prescriptionForm.id ? 'Update prescription' : 'Save prescription'}</button>
         </form>
       </section>
 

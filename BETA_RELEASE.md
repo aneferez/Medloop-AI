@@ -18,8 +18,10 @@ Build date: 30 July 2026
 - Android backup and device-transfer extraction remain disabled.
 - Updated privacy policy, medical disclaimer, and account-deletion disclosure for local-only storage.
 - Fixed reminder lead-time scheduling so an early reminder is scheduled before the selected dose time.
-- Added page-level lazy loading; the main production JavaScript chunk is 434.03 KB and no longer triggers the 500 KB warning.
-- Added 13 automated unit/integration tests covering daily midnight reset, reminder schedules/actions, camera/gallery validation, local image persistence, account login/deletion, encrypted backup/restore, dashboard dose ordering, and dashboard-style persistence.
+- Added page-level lazy loading; the main production JavaScript chunk is 434.13 KB and no longer triggers the 500 KB warning.
+- Added MedLoop Assist for guided medicine, family-profile, and prescription entry, with one-question-at-a-time validation, progress, review, and direct synchronization to the existing forms.
+- Added smooth clear-voice guidance generated with AI Voice Generator and bundled for private, offline playback; health details are never sent to the voice service.
+- Added 16 automated unit/integration tests covering daily midnight reset, reminder schedules/actions, camera/gallery validation, local image persistence, account login/deletion, encrypted backup/restore, dashboard dose ordering, dashboard-style persistence, and guided-assistant behavior.
 - Added three selectable, persistent dashboard designs—Halo, Timeline, and Companion—while preserving the existing MedLoop logo and live dose actions.
 - Verified lint, production web build, dependency audit, signed APK/AAB build, APK installation, Android launch, and absence of MedLoop fatal runtime logs on an Android emulator.
 - Added `scripts/test-android-device.ps1` for repeatable physical-device installation and smoke-test setup.
@@ -41,6 +43,6 @@ The calendar-day dose reset remains covered by the automated midnight-boundary t
 ## Artifacts
 
 - `artifacts/MedLoop-AI-1.1.0-beta.11.apk`
-  - SHA-256: `6B7F96FD970E1B42259567FCD2798E96C6178777C643038EEC9D224270C3AF92`
+  - SHA-256: `2ED1DBCB98255DA58E53743F1A35FC095875BB66952B3FB79865507F5FC1B159`
 - `artifacts/MedLoop-AI-1.1.0-beta.11.aab`
-  - SHA-256: `F30791DECC106A71BD559EA4928F5ED1783BBEF6AEF75462D4EE3F2F05183D20`
+  - SHA-256: `A2BCECD634C994B50FBD545B5EF7F163FDEBD6C9D642B3B15576350704B70804`

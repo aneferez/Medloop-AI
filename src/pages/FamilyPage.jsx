@@ -1,7 +1,16 @@
 import { MessageCircle, UserPlus, X } from 'lucide-react'
+import GuidedFormAssistant from '../components/GuidedFormAssistant'
 import RecordActions from '../components/RecordActions'
 
 function FamilyPage({ members, medicines, familyForm, setFamilyForm, saveFamilyMember, editFamilyMember, removeFamilyMember, resetFamilyForm, prepareRefillAlert, formFeedback }) {
+  const assistantSteps = [
+    { title: 'Who are you adding?', prompt: 'Start with the family member or caregiver’s name.', fields: [{ field: 'name', label: 'Name', placeholder: 'Full name', required: true }, { field: 'relationship', label: 'Relationship', placeholder: 'Example: Mother' }] },
+    { title: 'Add contact details if needed', prompt: 'Both fields are optional. Use international format for user-reviewed message drafts.', fields: [{ field: 'phone', label: 'SMS phone', type: 'tel', inputMode: 'tel', placeholder: '+919876543210' }, { field: 'whatsappNumber', label: 'WhatsApp number', type: 'tel', inputMode: 'tel', placeholder: '+919876543210' }], hint: 'MedLoop never sends SMS or WhatsApp messages automatically.' },
+    { title: 'Choose their alert role', prompt: 'Level 1 is the primary refill contact. Levels 2 and 3 remain secondary care profiles.', fields: [{ field: 'alertLevel', label: 'Alert level', options: ['Level 1', 'Level 2', 'Level 3'].map((value) => ({ value, label: value })) }] },
+    { title: 'Add optional health details', prompt: 'Only include details you want available on this device and emergency card.', fields: [{ field: 'age', label: 'Age', type: 'number', min: '0', placeholder: 'Age' }, { field: 'bloodGroup', label: 'Blood group', placeholder: 'Example: O+' }, { field: 'allergies', label: 'Allergies', placeholder: 'Example: Penicillin' }] },
+    { kicker: 'Final check', title: 'Review this care profile', prompt: 'Make sure contact details are correct before saving.', summary: (form) => [{ label: 'Name', value: form.name }, { label: 'Relationship', value: form.relationship }, { label: 'Alert role', value: form.alertLevel }, { label: 'SMS', value: form.phone }, { label: 'WhatsApp', value: form.whatsappNumber }] },
+  ]
+
   return (
     <section className="content-grid form-layout">
       <section className="panel-card form-panel">
@@ -9,6 +18,7 @@ function FamilyPage({ members, medicines, familyForm, setFamilyForm, saveFamilyM
           <div><p className="section-kicker">Care profiles</p><h2>{familyForm.id ? 'Edit family member' : 'Add family member'}</h2></div>
           {familyForm.id ? <button className="icon-btn" onClick={resetFamilyForm} title="Cancel editing" type="button" aria-label="Cancel editing"><X size={16} /></button> : <UserPlus size={20} />}
         </div>
+        <GuidedFormAssistant description="I’ll help organize contact and emergency details while keeping every field under your control." form={familyForm} setForm={setFamilyForm} steps={assistantSteps} targetFormId="family-form-submit" title="Build a care profile" voiceSrc="/audio/assist-family-clear.mp3" />
         <form className="form-stack" onSubmit={saveFamilyMember}>
           <label className="field"><span>Name</span><input value={familyForm.name} onChange={(event) => setFamilyForm({ ...familyForm, name: event.target.value })} placeholder="Name" required /></label>
           <label className="field"><span>SMS phone (optional)</span><input autoComplete="tel" inputMode="tel" value={familyForm.phone} onChange={(event) => setFamilyForm({ ...familyForm, phone: event.target.value })} placeholder="+919876543210" type="tel" /><small>Use international E.164 format so a missed-dose SMS draft can be prepared.</small></label>
@@ -23,7 +33,7 @@ function FamilyPage({ members, medicines, familyForm, setFamilyForm, saveFamilyM
             <label className="field"><span>Allergies</span><input value={familyForm.allergies} onChange={(event) => setFamilyForm({ ...familyForm, allergies: event.target.value })} placeholder="Allergies" /></label>
           </div>
           {formFeedback ? <p className="helper-text">{formFeedback}</p> : null}
-          <button className="primary-btn" type="submit">{familyForm.id ? 'Update member' : 'Save member'}</button>
+          <button className="primary-btn" data-assistant-target="family-form-submit" type="submit">{familyForm.id ? 'Update member' : 'Save member'}</button>
         </form>
       </section>
 

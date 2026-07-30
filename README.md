@@ -12,6 +12,8 @@ The current build is designed as a local-first app. User health data stays on th
 - App watermark added: `Developed by Aneruth | Rosaline`.
 - Profile photo upload is supported.
 - Prescription image upload is supported after saving a prescription record.
+- MedLoop Assist guides medicine, family, and prescription data entry one question at a time.
+- Clear, bundled voice guidance is available without sending health details to a voice service.
 - Direct prescription image upload accepts JPG, PNG, and WebP files up to 10 MB.
 - Medicine stock tracking is supported with stock decrement after taken doses.
 - End-of-day medicine review notifications are scheduled when reminders are enabled.
@@ -38,6 +40,8 @@ The current build is designed as a local-first app. User health data stays on th
 ## Main Features
 
 - Local email/password account access
+- Guided medicine, family-profile, and prescription data entry
+- Bundled clear-voice guidance with local playback
 - Medicine routine management
 - Dose status tracking
 - Exact-time medicine reminders
