@@ -92,7 +92,7 @@ function SettingsPage({
           }} type="button"><Download size={16} /> Export encrypted backup</button>
           <Button component="label" disabled={backupBusy || backupPassword.length < 8} startIcon={<Upload size={16} />} variant="outlined">
             Restore backup
-            <input accept=".medloop,application/json" aria-label="MedLoop encrypted backup file" hidden onChange={async (event) => {
+            <input accept=".medloop,application/json,application/octet-stream" aria-label="MedLoop encrypted backup file" hidden onChange={async (event) => {
               const file = event.target.files?.[0]
               event.target.value = ''
               if (!file) return

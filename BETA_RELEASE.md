@@ -23,14 +23,24 @@ Build date: 30 July 2026
 - Added three selectable, persistent dashboard designs—Halo, Timeline, and Companion—while preserving the existing MedLoop logo and live dose actions.
 - Verified lint, production web build, dependency audit, signed APK/AAB build, APK installation, Android launch, and absence of MedLoop fatal runtime logs on an Android emulator.
 - Added `scripts/test-android-device.ps1` for repeatable physical-device installation and smoke-test setup.
+- Fixed Android restore-picker compatibility by accepting the `application/octet-stream` MIME type used for `.medloop` files.
 
-## Physical-device checks still required
+## Physical-device verification
 
-No physical phone was connected during the 30 July build. Run `scripts/test-android-device.ps1` with one authorized phone, then complete its on-device checklist for alarm delivery/sound, notification buttons, midnight behavior, camera/gallery hardware, restart persistence, backup/restore, and deletion. SMS/WhatsApp messages must remain user-reviewed before sending.
+Verified on a POCO X6 Pro 5G running Android 16 / HyperOS V816:
+
+- Installed and launched the signed beta APK with the local session intact and no MedLoop fatal runtime logs.
+- Granted exact-alarm access and confirmed zero-window exact dose/refill alarms.
+- Confirmed the 10-second reminder sound test, the real selected-time medicine notification, and its Taken/Missed actions; the Taken action updated adherence and stock on-device.
+- Confirmed native camera capture, Android photo-picker upload, and prescription-image persistence after force-stop/relaunch.
+- Confirmed encrypted backup creation, password-authenticated restore, record replacement, and native `.medloop` selection after the MIME compatibility fix.
+- Confirmed account/session and medicine/prescription persistence after process restart.
+
+The calendar-day dose reset remains covered by the automated midnight-boundary test without changing the physical phone's system clock. Account deletion requires the test account holder to enter the current password on-device.
 
 ## Artifacts
 
 - `artifacts/MedLoop-AI-1.1.0-beta.11.apk`
-  - SHA-256: `EFF7D2A738EAEEC00D69662FFB1C060DB50467467A7204DCF435FEBF3FAB68D2`
+  - SHA-256: `6B7F96FD970E1B42259567FCD2798E96C6178777C643038EEC9D224270C3AF92`
 - `artifacts/MedLoop-AI-1.1.0-beta.11.aab`
-  - SHA-256: `FB50AA478F8B14516B3213B9D555FC198248E80F1EEC5141A062154021EC9437`
+  - SHA-256: `F30791DECC106A71BD559EA4928F5ED1783BBEF6AEF75462D4EE3F2F05183D20`
