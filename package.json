@@ -1,0 +1,49 @@
+{
+  "name": "medloop-ai",
+  "private": true,
+  "version": "1.1.0-beta.11",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5174",
+    "generate:icons": "node scripts/generate-icons.mjs",
+    "generate:android-assets": "node scripts/generate-android-assets.mjs",
+    "prebuild": "npm run generate:icons",
+    "build": "vite build",
+    "build:android": "npm run generate:icons && vite build --mode android",
+    "android:sync": "npm run build:android && npm run generate:android-assets && cap sync android",
+    "android:apk": "npm run android:sync && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-android.ps1",
+    "android:release": "npm run android:sync && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-android-release.ps1",
+    "lint": "oxlint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@aparajita/capacitor-secure-storage": "^8.0.0",
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/app": "^8.1.0",
+    "@capacitor/camera": "^8.2.0",
+    "@capacitor/core": "^8.4.1",
+    "@capacitor/filesystem": "^8.1.2",
+    "@capacitor/local-notifications": "^8.2.0",
+    "@capacitor/share": "^8.0.1",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^9.1.2",
+    "lucide-react": "^1.21.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.4.1",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.2",
+    "fake-indexeddb": "^6.2.5",
+    "oxlint": "^1.69.0",
+    "sharp": "^0.35.2",
+    "typescript": "^6.0.3",
+    "vite": "^8.1.0",
+    "vitest": "^4.1.10"
+  }
+}
