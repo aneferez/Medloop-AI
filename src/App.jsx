@@ -1070,6 +1070,14 @@ function App() {
     setState((current) => ({ ...current, settings }))
   }
 
+  const setDashboardVariant = (dashboardVariant) => {
+    setState((current) => ({
+      ...current,
+      settings: sanitizeSettings({ ...current.settings, dashboardVariant }),
+    }))
+    setSettingsForm((current) => sanitizeSettings({ ...current, dashboardVariant }))
+  }
+
   const enableMedicineReminders = async () => {
     setSettingsError('')
     const result = await requestReminderPermission({ requestExact: true })
@@ -1251,7 +1259,7 @@ function App() {
     if (currentPage === 'auth') {
       if (!authReady) return <LoadingPage />
       if (user) {
-        return <DashboardPage progress={progress} nextMedicine={nextMedicine} medicines={state.medicines} alerts={alerts} appointments={state.appointments} updateMedicine={updateMedicine} navigateTo={navigateTo} />
+        return <DashboardPage progress={progress} nextMedicine={nextMedicine} medicines={state.medicines} alerts={alerts} appointments={state.appointments} updateMedicine={updateMedicine} navigateTo={navigateTo} displayName={state.settings.displayName || user?.displayName} dashboardVariant={state.settings.dashboardVariant} setDashboardVariant={setDashboardVariant} />
       }
       return renderAuthPage()
     }
@@ -1269,6 +1277,9 @@ function App() {
             appointments={state.appointments}
             updateMedicine={updateMedicine}
             navigateTo={navigateTo}
+            displayName={state.settings.displayName || user?.displayName}
+            dashboardVariant={state.settings.dashboardVariant}
+            setDashboardVariant={setDashboardVariant}
           />
         )
       case 'family':
@@ -1372,7 +1383,7 @@ function App() {
       case 'legal':
         return <LegalPage navigateTo={navigateTo} />
       default:
-        return <DashboardPage progress={progress} nextMedicine={nextMedicine} medicines={state.medicines} alerts={alerts} appointments={state.appointments} updateMedicine={updateMedicine} navigateTo={navigateTo} />
+        return <DashboardPage progress={progress} nextMedicine={nextMedicine} medicines={state.medicines} alerts={alerts} appointments={state.appointments} updateMedicine={updateMedicine} navigateTo={navigateTo} displayName={state.settings.displayName || user?.displayName} dashboardVariant={state.settings.dashboardVariant} setDashboardVariant={setDashboardVariant} />
     }
   }
 

@@ -1596,3 +1596,385 @@ textarea:focus {
     max-width: calc(100vw - 20px);
   }
 }
+
+/* Dashboard design collection: Halo, Timeline, Companion */
+.redesigned-dashboard {
+  --dash-ink: #182638;
+  --dash-muted: #667386;
+  --dash-teal: #087c73;
+  --dash-teal-soft: #e6f5f2;
+  --dash-blue: #263b73;
+  --dash-coral: #c85e52;
+  --dash-warm: #f5f2e9;
+  max-width: 1100px;
+  margin: 0 auto;
+  color: var(--dash-ink);
+}
+
+.dashboard-masthead,
+.dashboard-identity,
+.dashboard-variant-switcher,
+.dashboard-section-title,
+.dashboard-dose-actions,
+.dashboard-mini-card,
+.companion-time,
+.companion-later {
+  display: flex;
+  align-items: center;
+}
+
+.dashboard-masthead {
+  justify-content: space-between;
+  gap: 18px;
+  padding: 4px 2px 8px;
+}
+
+.dashboard-identity {
+  gap: 13px;
+}
+
+.dashboard-identity img {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(24, 38, 56, 0.14);
+}
+
+.dashboard-identity p,
+.dashboard-identity h2,
+.halo-copy h3,
+.halo-copy p,
+.dashboard-section-title h3,
+.timeline-summary h3,
+.timeline-summary p,
+.companion-intro p,
+.companion-intro h3,
+.companion-dose-card h3,
+.companion-dose-card p {
+  margin: 0;
+}
+
+.dashboard-identity p {
+  color: var(--dash-muted);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.dashboard-identity h2 {
+  margin-top: 2px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.35rem, 2.6vw, 2rem);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.dashboard-variant-switcher {
+  gap: 3px;
+  padding: 4px;
+  background: #e9edf3;
+  border-radius: 999px;
+}
+
+.dashboard-variant-switcher button {
+  min-height: 34px;
+  padding: 7px 13px;
+  color: #657083;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.dashboard-variant-switcher button.active {
+  color: var(--dash-blue);
+  background: #ffffff;
+  box-shadow: 0 3px 12px rgba(24, 38, 56, 0.11);
+}
+
+.dashboard-card,
+.dashboard-empty,
+.halo-hero,
+.companion-dose-card,
+.companion-metrics,
+.companion-later {
+  background: #ffffff;
+  border: 1px solid #dce3ea;
+  border-radius: 24px;
+  box-shadow: 0 14px 38px rgba(35, 52, 73, 0.07);
+}
+
+.dashboard-empty {
+  display: grid;
+  min-height: 390px;
+  padding: 52px 24px;
+  place-items: center;
+  align-content: center;
+  text-align: center;
+}
+
+.dashboard-empty > span {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  margin-bottom: 8px;
+  color: var(--dash-teal);
+  background: var(--dash-teal-soft);
+  border-radius: 18px;
+  place-items: center;
+}
+
+.dashboard-empty h3 { margin: 8px 0 0; font-family: Georgia, 'Times New Roman', serif; font-size: 1.6rem; }
+.dashboard-empty p { max-width: 420px; margin: 8px 0 20px; color: var(--dash-muted); }
+
+.halo-layout,
+.companion-layout {
+  display: grid;
+  gap: 16px;
+}
+
+.halo-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  align-items: center;
+  min-height: 300px;
+  overflow: hidden;
+  padding: clamp(28px, 5vw, 58px);
+  background: #f3f7f5;
+  border-color: #d6e4df;
+}
+
+.halo-copy h3,
+.companion-intro h3,
+.companion-dose-card h3,
+.timeline-summary h3 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
+
+.dashboard-overline,
+.dashboard-section-title span,
+.companion-later > span {
+  color: var(--dash-teal);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.halo-copy h3 {
+  max-width: 620px;
+  margin-top: 10px;
+  font-size: clamp(2.1rem, 5vw, 4.2rem);
+}
+
+.halo-copy > p {
+  margin-top: 8px;
+  color: var(--dash-muted);
+  font-size: 1rem;
+}
+
+.dashboard-dose-actions {
+  gap: 9px;
+  margin-top: 24px;
+}
+
+.dashboard-dose-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 760;
+}
+
+.dose-taken-btn {
+  color: #ffffff;
+  background: var(--dash-teal);
+  border: 1px solid var(--dash-teal);
+}
+
+.dose-missed-btn {
+  color: #8b453e;
+  background: #fff8f6;
+  border: 1px solid #ebcac5;
+}
+
+.dose-halo {
+  position: relative;
+  display: grid;
+  width: 190px;
+  height: 190px;
+  place-items: center;
+}
+
+.dose-halo .MuiCircularProgress-root {
+  position: absolute;
+}
+
+.halo-track { color: #d9e5e1; }
+.halo-progress { color: var(--dash-teal); }
+
+.dose-halo > div {
+  display: grid;
+  text-align: center;
+}
+
+.dose-halo strong { font-family: Georgia, 'Times New Roman', serif; font-size: 2.35rem; line-height: 1; }
+.dose-halo span { margin-top: 6px; color: var(--dash-muted); font-size: 0.75rem; font-weight: 700; }
+
+.halo-schedule { padding: 24px; }
+
+.dashboard-section-title {
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.dashboard-section-title h3 { margin-top: 3px; font-size: 1.2rem; }
+.dashboard-section-title button,
+.timeline-manage {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px;
+  color: var(--dash-teal);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.halo-dose-list,
+.timeline-rail {
+  display: grid;
+}
+
+.dashboard-dose-row {
+  display: grid;
+  grid-template-columns: 62px 30px minmax(0, 1fr) auto;
+  align-items: center;
+  min-height: 70px;
+  border-top: 1px solid #e7ebef;
+}
+
+.dashboard-dose-row time { color: var(--dash-muted); font-size: 0.78rem; font-weight: 750; }
+.dose-rail-icon { display: grid; width: 26px; height: 26px; color: #8793a3; background: #f0f3f6; border-radius: 50%; place-items: center; }
+.dashboard-dose-row.taken .dose-rail-icon { color: var(--dash-teal); background: var(--dash-teal-soft); }
+.dashboard-dose-row.missed .dose-rail-icon { color: var(--dash-coral); background: #fff0ed; }
+.dose-row-copy { display: grid; gap: 2px; }
+.dose-row-copy small { color: var(--dash-muted); }
+.dose-status-label { color: var(--dash-muted); font-size: 0.72rem; font-weight: 760; text-transform: capitalize; }
+.dashboard-dose-row.taken .dose-row-copy { opacity: 0.62; }
+
+.dashboard-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.dashboard-mini-card {
+  justify-content: flex-start;
+  gap: 13px;
+  min-height: 82px;
+  padding: 17px 19px;
+  color: var(--dash-ink);
+  background: #ffffff;
+  border: 1px solid #dce3ea;
+  border-radius: 18px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.dashboard-mini-card > svg:first-child { color: var(--dash-teal); }
+.dashboard-mini-card > svg:last-child { margin-left: auto; color: #8994a3; }
+.dashboard-mini-card span { display: grid; min-width: 0; gap: 2px; }
+.dashboard-mini-card small { color: var(--dash-muted); }
+.dashboard-mini-card strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.timeline-layout {
+  display: grid;
+  grid-template-columns: minmax(210px, 0.65fr) minmax(0, 1.35fr);
+  column-gap: clamp(28px, 6vw, 80px);
+  padding: clamp(28px, 5vw, 58px);
+}
+
+.timeline-summary { align-self: start; position: sticky; top: 112px; }
+.timeline-summary h3 { margin-top: 10px; font-size: clamp(2rem, 4vw, 3.3rem); line-height: 1.02; }
+.timeline-summary p { margin-top: 12px; color: var(--dash-muted); line-height: 1.6; }
+.timeline-rail { position: relative; }
+.timeline-rail::before { position: absolute; top: 33px; bottom: 33px; left: 74px; width: 1px; background: #d9e0e7; content: ''; }
+.timeline-rail .dashboard-dose-row { position: relative; grid-template-columns: 62px 40px minmax(0, 1fr) auto; min-height: 88px; border-top: 0; }
+.timeline-rail .dose-rail-icon { z-index: 1; background: #f5f7fa; border: 1px solid #d9e0e7; }
+.timeline-rail .dashboard-dose-row.expanded { margin: 5px 0; padding: 18px; background: #f2f8f6; border: 1px solid #d3e7e1; border-radius: 18px; box-shadow: 0 10px 26px rgba(24, 76, 69, 0.08); }
+.timeline-rail .dashboard-dose-row.expanded time { margin-left: -2px; }
+.dashboard-dose-actions.compact { margin-top: 0; }
+.dashboard-dose-actions.compact button { min-height: 36px; padding: 7px 10px; font-size: 0.76rem; }
+.timeline-manage { grid-column: 2; width: fit-content; margin-top: 20px; }
+
+.variant-companion { max-width: 900px; }
+.companion-layout { gap: 20px; }
+.companion-intro { padding: clamp(26px, 5vw, 54px) 12px 12px; text-align: center; }
+.companion-intro > span { display: grid; width: 38px; height: 38px; margin: 0 auto 15px; color: #9a713f; background: #f5ead6; border-radius: 50%; place-items: center; }
+.companion-intro p { color: #9a713f; font-weight: 750; }
+.companion-intro h3 { max-width: 650px; margin: 10px auto 0; font-size: clamp(2rem, 5vw, 3.7rem); line-height: 1.07; }
+.companion-dose-card { display: grid; grid-template-columns: 104px minmax(0, 1fr) auto; align-items: center; gap: 26px; min-height: 190px; padding: clamp(24px, 4vw, 40px); background: var(--dash-warm); border-color: #e4ddcc; }
+.companion-time { align-self: stretch; flex-direction: column; justify-content: center; gap: 8px; color: #795f3f; border-right: 1px solid #d9cfba; }
+.companion-time span { font-family: Georgia, 'Times New Roman', serif; font-size: 1.35rem; font-weight: 700; }
+.companion-dose-card h3 { margin-top: 7px; font-size: clamp(1.8rem, 3.5vw, 2.8rem); }
+.companion-dose-card p { margin-top: 4px; color: var(--dash-muted); }
+.companion-metrics { display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; border-radius: 20px; }
+.companion-metrics button { display: flex; align-items: center; gap: 13px; min-height: 92px; padding: 20px 24px; color: var(--dash-ink); background: #ffffff; border: 0; cursor: pointer; text-align: left; }
+.companion-metrics button + button { border-left: 1px solid #e1e6eb; }
+.companion-metrics button > svg:first-child { color: var(--dash-teal); }
+.companion-metrics button > svg:last-child { margin-left: auto; color: #8893a2; }
+.companion-metrics span { display: grid; }
+.companion-metrics small { color: var(--dash-muted); }
+.companion-metrics strong { font-size: 1.25rem; }
+.companion-later { gap: 18px; padding: 18px 24px; box-shadow: none; }
+.companion-later > strong { font-family: Georgia, 'Times New Roman', serif; font-size: 1.15rem; }
+.companion-later div { display: grid; gap: 1px; }
+.companion-later small { color: var(--dash-muted); }
+
+@media (max-width: 780px) {
+  .dashboard-masthead { align-items: flex-start; flex-direction: column; }
+  .dashboard-variant-switcher { width: 100%; }
+  .dashboard-variant-switcher button { flex: 1; }
+  .halo-hero { grid-template-columns: 1fr; gap: 28px; }
+  .dose-halo { grid-row: 1; width: 164px; height: 164px; justify-self: center; }
+  .dose-halo .MuiCircularProgress-root { width: 158px !important; height: 158px !important; }
+  .halo-copy { text-align: center; }
+  .dashboard-dose-actions { justify-content: center; }
+  .timeline-layout { grid-template-columns: 1fr; }
+  .timeline-summary { position: static; margin-bottom: 22px; }
+  .timeline-manage { grid-column: 1; }
+  .companion-dose-card { grid-template-columns: 1fr; gap: 18px; text-align: center; }
+  .companion-time { align-self: auto; flex-direction: row; padding-bottom: 16px; border-right: 0; border-bottom: 1px solid #d9cfba; }
+}
+
+@media (max-width: 560px) {
+  .redesigned-dashboard { gap: 13px; }
+  .dashboard-identity img { width: 43px; height: 43px; border-radius: 10px; }
+  .halo-hero { min-height: 0; padding: 26px 20px 30px; border-radius: 20px; }
+  .halo-copy h3 { font-size: 2.35rem; }
+  .dashboard-dose-actions button { flex: 1; padding-inline: 12px; }
+  .halo-schedule { padding: 19px 16px; border-radius: 20px; }
+  .dashboard-dose-row { grid-template-columns: 48px 30px minmax(0, 1fr); min-height: 72px; }
+  .dashboard-dose-row .dose-status-label { display: none; }
+  .dashboard-mini-grid,
+  .companion-metrics { grid-template-columns: 1fr; }
+  .companion-metrics button + button { border-top: 1px solid #e1e6eb; border-left: 0; }
+  .timeline-layout { padding: 26px 18px; border-radius: 20px; }
+  .timeline-rail::before { left: 58px; }
+  .timeline-rail .dashboard-dose-row { grid-template-columns: 46px 34px minmax(0, 1fr); }
+  .timeline-rail .dashboard-dose-row.expanded { grid-template-columns: 42px 32px minmax(0, 1fr); padding: 15px 12px; }
+  .timeline-rail .dashboard-dose-row.expanded .dashboard-dose-actions { grid-column: 1 / -1; margin-top: 12px; }
+  .companion-intro { padding-top: 28px; }
+  .companion-intro h3 { font-size: 2.3rem; }
+  .companion-dose-card { padding: 24px 20px; border-radius: 20px; }
+}

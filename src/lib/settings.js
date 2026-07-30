@@ -1,5 +1,6 @@
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const PHONE_PATTERN = /^[+0-9 ()-]{7,20}$/
+const DASHBOARD_VARIANTS = new Set(['halo', 'timeline', 'companion'])
 
 export const defaultSettings = Object.freeze({
   displayName: '',
@@ -8,6 +9,7 @@ export const defaultSettings = Object.freeze({
   notificationsEnabled: false,
   smsAlerts: false,
   whatsappAlerts: false,
+  dashboardVariant: 'halo',
 })
 
 export function validateSettingsForm(form) {
@@ -52,6 +54,7 @@ export function sanitizeSettings(form) {
     notificationsEnabled: Boolean(form?.notificationsEnabled),
     smsAlerts: Boolean(form?.smsAlerts),
     whatsappAlerts: Boolean(form?.whatsappAlerts),
+    dashboardVariant: DASHBOARD_VARIANTS.has(form?.dashboardVariant) ? form.dashboardVariant : defaultSettings.dashboardVariant,
   }
 }
 

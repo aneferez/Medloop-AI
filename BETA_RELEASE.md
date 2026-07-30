@@ -18,8 +18,9 @@ Build date: 30 July 2026
 - Android backup and device-transfer extraction remain disabled.
 - Updated privacy policy, medical disclaimer, and account-deletion disclosure for local-only storage.
 - Fixed reminder lead-time scheduling so an early reminder is scheduled before the selected dose time.
-- Added page-level lazy loading; the main production JavaScript chunk is 442.67 KB and no longer triggers the 500 KB warning.
-- Added 11 automated unit/integration tests covering daily midnight reset, reminder schedules/actions, camera/gallery validation, local image persistence, account login/deletion, and encrypted backup/restore.
+- Added page-level lazy loading; the main production JavaScript chunk is 434.03 KB and no longer triggers the 500 KB warning.
+- Added 13 automated unit/integration tests covering daily midnight reset, reminder schedules/actions, camera/gallery validation, local image persistence, account login/deletion, encrypted backup/restore, dashboard dose ordering, and dashboard-style persistence.
+- Added three selectable, persistent dashboard designs—Halo, Timeline, and Companion—while preserving the existing MedLoop logo and live dose actions.
 - Verified lint, production web build, dependency audit, signed APK/AAB build, APK installation, Android launch, and absence of MedLoop fatal runtime logs on an Android emulator.
 - Added `scripts/test-android-device.ps1` for repeatable physical-device installation and smoke-test setup.
 
@@ -30,6 +31,6 @@ No physical phone was connected during the 30 July build. Run `scripts/test-andr
 ## Artifacts
 
 - `artifacts/MedLoop-AI-1.1.0-beta.11.apk`
-  - SHA-256: `5AB2AA9539DA1933994A792C8EED64423847F18062B6781297226BAF5071318A`
+  - SHA-256: `EFF7D2A738EAEEC00D69662FFB1C060DB50467467A7204DCF435FEBF3FAB68D2`
 - `artifacts/MedLoop-AI-1.1.0-beta.11.aab`
-  - SHA-256: `AEE2FBE0091A7EAD12397500E7B48BD4D858185035B569B8A7EEFED60580FD28`
+  - SHA-256: `FB50AA478F8B14516B3213B9D555FC198248E80F1EEC5141A062154021EC9437`
