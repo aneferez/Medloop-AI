@@ -8,13 +8,13 @@ $javaHome = Get-ChildItem 'C:\Program Files\Eclipse Adoptium' -Directory -ErrorA
 
 if (-not $javaHome) {
   $javaHome = Get-ChildItem 'C:\Program Files\Java' -Directory -ErrorAction SilentlyContinue |
-    Where-Object { $_.Name -like 'jdk-17*' } |
+  Where-Object { $_.Name -like 'jdk-21*' } |
     Sort-Object Name -Descending |
     Select-Object -First 1 -ExpandProperty FullName
 }
 
 if (-not $javaHome) {
-  throw 'Java 17 or newer is required to build the Android app.'
+  throw 'JDK 21 is required to build the Android app.'
 }
 
 $androidHome = if ($env:ANDROID_HOME) { $env:ANDROID_HOME } else { "$env:LOCALAPPDATA\Android\Sdk" }

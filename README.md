@@ -1,215 +1,104 @@
 # MedLoop AI
 
-MedLoop AI is a React, Vite, and Capacitor-based Android app for medicine coordination. It helps users track medicines, dose schedules, family contacts, appointments, prescription records, refill reminders, and local encrypted backups.
+MedLoop AI is a local-first medicine coordination application built with React, Vite, and Capacitor for Android. It manages medicine schedules, dose history, family contacts, appointments, prescriptions, stock levels, local reminders, and encrypted user-controlled backups without an application server.
 
-The current build is designed as a local-first app. User health data stays on the device unless the user manually exports an encrypted backup.
+> MedLoop AI is an organization and reminder tool. It is not a diagnostic, treatment, emergency-monitoring, or clinical decision system.
 
-## Current Status
+## Project status
 
-- Android release APK generated.
-- Android release AAB generated for Play Store upload.
-- Login page uses the MedLoop logo from `public/icon.jpg`.
-- App watermark added: `Developed by Aneruth | Rosaline`.
-- Profile photo upload is supported.
-- Prescription image upload is supported after saving a prescription record.
-- MedLoop Assist guides medicine, family, and prescription data entry one question at a time.
-- Clear, bundled voice guidance is available without sending health details to a voice service.
-- Direct prescription image upload accepts JPG, PNG, and WebP files up to 10 MB.
-- Medicine stock tracking is supported with stock decrement after taken doses.
-- End-of-day medicine review notifications are scheduled when reminders are enabled.
-- Stock buffer and monthly stock review notifications are scheduled when medicine stock is set.
-- Lint check passed.
-- Production build passed.
-- Android release build passed.
-- Automated unit and integration tests pass.
-- The release APK installs and launches on an Android emulator without an app crash.
-- Page-level code splitting keeps the main production JavaScript chunk below 500 KB.
+- Version: `1.1.0-beta.11` (`versionCode 15`)
+- Android application ID: `com.medloop.ai`
+- Minimum Android version: API 24 (Android 7.0)
+- Target/compile SDK: API 36
+- Primary platform: Android; the React interface also runs in a browser for development
+- Data model: local-only, per-account records with no backend or cloud synchronization
+- Release outputs: signed APK and AAB in `artifacts/`
 
-## Tech Stack
+## Documentation
 
-- React
-- Vite
-- Capacitor
-- Android
-- Capacitor Local Notifications
-- Capacitor Camera
-- Capacitor Filesystem
-- Local device storage
-- IndexedDB for local media storage
+| Document | Purpose |
+| --- | --- |
+| [Documentation index](docs/README.md) | Complete documentation map and project facts |
+| [User guide](docs/USER_GUIDE.md) | Account setup, medicines, reminders, media, backups, and deletion |
+| [Architecture and data](docs/ARCHITECTURE.md) | Runtime design, routes, storage, data model, and application flows |
+| [Security and privacy](docs/SECURITY.md) | Trust boundaries, cryptography, permissions, retention, and limitations |
+| [Developer guide](docs/DEVELOPMENT.md) | Setup, scripts, project layout, conventions, and troubleshooting |
+| [Testing and QA](docs/TESTING.md) | Automated coverage, manual checks, and release acceptance criteria |
+| [Android release guide](docs/ANDROID_RELEASE.md) | Signing, APK/AAB generation, device smoke tests, and Play handoff |
+| [Beta release record](BETA_RELEASE.md) | Version-specific changes, physical-device verification, and checksums |
+| [Design QA record](design-qa.md) | Responsive visual review and captured states |
 
-## Main Features
+## Quick start
 
-- Local email/password account access
-- Guided medicine, family-profile, and prescription data entry
-- Bundled clear-voice guidance with local playback
-- Medicine routine management
-- Dose status tracking
-- Exact-time medicine reminders
-- Medicine stock count tracking
-- Stock update notification after taken doses
-- End-of-day taken/pending/missed review notification
-- Stock buffer and monthly stock review reminders
-- Refill alerts
-- Family contact management
-- SMS and WhatsApp draft alerts
-- Appointment tracking
-- Prescription records
-- Prescription image upload
-- Profile photo upload
-- Local encrypted backup and restore
-- Account deletion from the device
-- Privacy policy and medical disclaimer inside the app
-
-## Run Locally
-
-Install dependencies:
+Prerequisites: Node.js with npm. Android builds additionally require JDK 21 and Android SDK 36.
 
 ```powershell
 npm install
-```
-
-Start the development server:
-
-```powershell
 npm run dev
 ```
 
-The app runs at:
+Open `http://127.0.0.1:5174`.
 
-```text
-http://127.0.0.1:5174
-```
-
-## Verification
-
-Run lint:
+Run the standard verification suite:
 
 ```powershell
 npm run lint
-```
-
-Run automated tests:
-
-```powershell
 npm test
-```
-
-Create a production web build:
-
-```powershell
 npm run build
 ```
 
-## Android Build
+Build a debug APK:
 
-The Android package ID is:
-
-```text
-com.medloop.ai
+```powershell
+npm run android:apk
 ```
 
-Create the Android release APK and AAB:
+Build signed release APK and AAB files after configuring the private release keystore:
 
 ```powershell
 npm run android:release
 ```
 
-Release outputs are generated under:
+## Core capabilities
 
-```text
-artifacts/
-```
+- Local email/password accounts and persistent local sessions
+- Morning, afternoon, and night medicine schedules with selected-time reminders
+- Taken, missed, and pending dose states with daily reset and a 200-entry event history
+- Optional stock decrement, refill buffer, low-stock alerts, and monthly stock review
+- Family profiles with one Level 1 contact and user-reviewed SMS/WhatsApp drafts
+- Appointments, prescription notes, camera/gallery prescription images, and profile photos
+- Three persistent dashboard layouts: Halo, Timeline, and Companion
+- Post-login contextual AI guide for every section with English, Hindi, and Tamil speech, approved local help search, anonymous on-device feedback, and guided data entry
+- Password-encrypted `.medloop` backup export and destructive restore confirmation
+- Local account and associated record/media deletion
+- In-app privacy, safety, medical disclaimer, and public privacy/deletion pages
 
-Use this file for direct Android testing:
+## Technology stack
 
-```text
-artifacts/MedLoop-AI-release.apk
-```
+- React 19 and React DOM
+- Vite 8
+- Material UI and Emotion
+- Lucide React icons
+- Capacitor 8 with Android, App, Camera, Filesystem, Local Notifications, and Share plugins
+- Capacitor Secure Storage for account/session/record storage
+- IndexedDB for local profile and prescription images
+- Vitest, fake-indexeddb, and Oxlint
+- Gradle 8.14.3 and Android SDK 36
 
-Use this file for Google Play Store upload:
+## Configuration
 
-```text
-artifacts/MedLoop-AI-release.aab
-```
+Assistant recordings are loaded from `public/audio/assistant/<language>/<section>.mp3` and work offline after they are bundled into the APK. To prefer an online mirror with automatic offline and device-speech fallback, copy `.env.example` to `.env` and set `VITE_ASSISTANT_AUDIO_BASE_URL` to the static host root.
 
-With one authorized physical Android device connected, install and start the release smoke test:
+The current application has no required `.env` values, API keys, database URL, Firebase project, or paid service dependency. Do not add secrets to source control. Android release signing uses ignored local files under `android/keystore/` and `android/keystore.properties`; see the [Android release guide](docs/ANDROID_RELEASE.md).
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-android-device.ps1
-```
+## Privacy summary
 
-## Image Upload Notes
+Application records remain on the device. Media is held in the app's local IndexedDB database. Account credentials and structured account data use Capacitor Secure Storage. Exported backups use PBKDF2-SHA-256 key derivation and AES-256-GCM authenticated encryption. Android system backup and device-transfer extraction are disabled.
 
-Profile photo upload is available from the Settings page.
+SMS and WhatsApp alerts are drafts: MedLoop opens the target app and the user reviews and sends the message. The app does not silently contact family members.
 
-Prescription image upload works from the Prescriptions page:
+## License and ownership
 
-1. Add and save a prescription record.
-2. Use the `Upload` button on the saved prescription item.
-3. Choose a JPG, PNG, or WebP image.
-4. The image is saved locally on the device.
+No open-source license file is currently included. Treat the repository as proprietary unless the project owner adds an explicit license.
 
-Prescription images are limited to 10 MB.
-
-## Medicine Stock Notes
-
-Medicine stock can be entered from the Medicines page.
-
-For each medicine, the app can track:
-
-- Current stock
-- Units used per dose
-- Refill buffer days
-- Stock unit label, such as tablets or capsules
-
-When a dose is marked as `Taken`, MedLoop subtracts the configured units per dose from the remaining stock and shows an in-app update message. If Android notifications are enabled, it also sends a stock update notification.
-
-If a taken dose is changed back to `Pending` or `Missed`, the deducted stock is restored.
-
-When remaining stock reaches the configured buffer level, MedLoop creates an alert and schedules a stock buffer notification.
-
-## Local-Only Architecture
-
-MedLoop AI currently stores data on the user's device.
-
-Stored locally:
-
-- Account details
-- Medicine routines
-- Dose logs
-- Family contacts
-- Appointments
-- Alerts
-- Prescription notes
-- Settings
-- Profile photos
-- Prescription images
-- Medicine stock counts and buffer settings
-- Encrypted backup files created by the user
-
-The app does not silently send family alerts. It opens SMS or WhatsApp drafts so the user can review and send them manually.
-
-Android cloud backup and device-transfer extraction are disabled for the app's private data.
-
-## Future Improvement Note
-
-A paid cloud backup option may be added later.
-
-Suggested future idea:
-
-- INR 399 unlock for encrypted Google Drive backup and restore.
-- Use Google Drive app-specific storage.
-- Keep normal medicine tracking local by default.
-- Use Google Play Billing if distributed through the Play Store.
-
-Firebase Storage is not enabled in this build because creating a new Firebase Storage bucket requires a paid Firebase billing plan.
-
-## Privacy and Safety
-
-MedLoop AI is a reminder and organization tool. It is not a diagnostic, treatment, emergency-monitoring, or clinical decision system.
-
-Users should always follow the original prescription and confirm unclear medicine instructions with a qualified doctor, pharmacist, or caregiver.
-
-## Developer Credit
-
-Developed by Aneruth | Rosaline
+Developed by Aneruth | Rosaline.
