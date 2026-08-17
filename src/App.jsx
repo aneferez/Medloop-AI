@@ -24,6 +24,9 @@ import { composeMissedDoseWhatsApp, composeRefillWhatsApp } from './lib/whatsapp
 import { getSecureValue, removeSecureValue, setSecureValue } from './lib/secureStorage'
 import { backupImageToBlob, blobToBackupImage, createEncryptedBackup, decryptBackupFile, MAX_BACKUP_FILE_BYTES, saveEncryptedBackupFile } from './lib/localBackup'
 import { pageById, pageByPath } from './navigation'
+import { useCloudSync, cloudStatusLabel } from './lib/cloud/useCloudSync'
+import { usePushRegistration } from './lib/cloud/usePushRegistration'
+import { clearCloudSession } from './lib/cloud/session'
 import LoadingPage from './pages/LoadingPage'
 import './App.css'
 
@@ -335,6 +338,13 @@ function App() {
   const prescriptionImageUrlsRef = useRef({})
   const profilePhotoId = user?.uid ? `user:${user.uid}` : 'guest'
   const accountUsesPassword = true
+
+  // Best-effort cloud mirror (no-op unless VITE_MEDLOOP_API_URL is configured).
+  const cloudStatus = useCloudSync({ user, state, accountReady })
+
+  // Register this device for native push and send its FCM token to the backend
+  // (native-only; no-op on web or when the cloud is disabled).
+  usePushRegistration({ user, accountReady })
 
   useEffect(() => {
     if (!appNotice) return undefined
@@ -1226,6 +1236,7 @@ function App() {
       await deletePrescriptionImagesForOwner(user.uid)
       replacePrescriptionImageUrls([])
       await removeSecureValue(getLocalStorageKey(getUserStorageId(user)))
+      await clearCloudSession(user).catch(() => {})
       setState(createEmptyState())
       setDeletePassword('')
       setSettingsFeedback('Account deleted.')
@@ -1350,7 +1361,7 @@ function App() {
       case 'reports':
         return <ReportsPage medicines={state.medicines} doseLogs={state.doseLogs} />
       case 'emergency-card':
-        return <EmergencyCardPage members={state.familyMembers} medicines={state.medicines} />
+        return <EmergencyCardPage members={state.familyMembers} medicines={state.medicines} user={user} />
       case 'settings':
         return (
           <SettingsPage
@@ -1391,12 +1402,18 @@ function App() {
   const syncLabel = !authReady
     ? 'Checking account'
     : user
-      ? `${user.email || 'Account'} | local only`
+      ? `${user.email || 'Account'} | ${cloudStatusLabel(cloudStatus)}`
       : 'Local mode'
   const appNoticeElement = appNotice ? <div className="app-toast" role="status">{appNotice}</div> : null
 
   if (!authReady || !accountReady) return <><LoadingPage />{appNoticeElement}</>
-  if (!user) return <><Suspense fallback={<LoadingPage />}>{renderAuthPage()}</Suspense>{appNoticeElement}</>
+  if (!user) return (
+    <div className="auth-frame">
+      <Suspense fallback={<LoadingPage />}>{renderAuthPage()}</Suspense>
+      <footer className="app-footer">Developed by Aneruth <span aria-hidden="true">|</span> Rosaline</footer>
+      {appNoticeElement}
+    </div>
+  )
 
   return (
     <>
@@ -1408,6 +1425,16 @@ function App() {
         profilePhotoUrl={profilePhotoUrl || user?.photoURL || ''}
         navigateTo={navigateTo}
         handleLogout={handleLogout}
+        assistantContext={{
+          displayName: state.settings.displayName,
+          familyCount: state.familyMembers.length,
+          medicineCount: state.medicines.length,
+          appointmentCount: state.appointments.length,
+          prescriptionCount: state.prescriptions.length,
+          alertCount: alerts.length,
+          progress,
+          notificationsEnabled: state.settings.notificationsEnabled,
+        }}
       >
         <Suspense fallback={<LoadingPage />}>{renderCurrentPage()}</Suspense>
       </AppShell>
