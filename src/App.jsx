@@ -25,6 +25,7 @@ import { getSecureValue, removeSecureValue, setSecureValue } from './lib/secureS
 import { backupImageToBlob, blobToBackupImage, createEncryptedBackup, decryptBackupFile, MAX_BACKUP_FILE_BYTES, saveEncryptedBackupFile } from './lib/localBackup'
 import { pageById, pageByPath } from './navigation'
 import { useCloudSync, cloudStatusLabel } from './lib/cloud/useCloudSync'
+import { cloudBackupNote, deletePrescriptionFile, uploadPrescriptionFile } from './lib/cloud/prescriptionFiles'
 import { usePushRegistration } from './lib/cloud/usePushRegistration'
 import { clearCloudSession } from './lib/cloud/session'
 import LoadingPage from './pages/LoadingPage'
@@ -336,11 +337,14 @@ function App() {
   const notificationActionHandlerRef = useRef(null)
   const pendingNotificationActionRef = useRef(null)
   const prescriptionImageUrlsRef = useRef({})
+  // Lets the appRestoredResult listener (a mount-only effect) reach the current
+  // mirror function instead of closing over the signed-out initial one.
+  const mirrorPrescriptionImageRef = useRef(() => {})
   const profilePhotoId = user?.uid ? `user:${user.uid}` : 'guest'
   const accountUsesPassword = true
 
   // Best-effort cloud mirror (no-op unless VITE_MEDLOOP_API_URL is configured).
-  const cloudStatus = useCloudSync({ user, state, accountReady })
+  const { status: cloudStatus, syncNow: cloudSyncNow } = useCloudSync({ user, state, accountReady })
 
   // Register this device for native push and send its FCM token to the backend
   // (native-only; no-op on web or when the cloud is disabled).
@@ -495,6 +499,7 @@ function App() {
         updatePrescriptionImageUrl(target.prescriptionId, image)
         setPrescriptionImageRevision((current) => current + 1)
         setPrescriptionPhotoFeedback((current) => ({ ...current, [target.prescriptionId]: 'Prescription image restored and saved on this device.' }))
+        mirrorPrescriptionImageRef.current(target.prescriptionId, image, 'Prescription image restored and saved on this device.')
       } catch (error) {
         console.error('Unable to restore the prescription camera result', error)
       } finally {
@@ -897,6 +902,9 @@ function App() {
       void deletePrescriptionImage(user.uid, prescription.id).catch((error) => {
         console.error('Unable to delete the local prescription image', error)
       })
+      // Drop the R2 copy first: once the next sync removes the D1 row the file
+      // route can no longer resolve it, and the object would be orphaned.
+      void deletePrescriptionFile(user, prescription.id)
     }
     updatePrescriptionImageUrl(prescription.id, null)
     setState((current) => ({
@@ -905,6 +913,18 @@ function App() {
     }))
     if (prescriptionForm.id === prescription.id) resetPrescriptionForm()
   })
+
+  // Best-effort R2 mirror. The device copy is already saved by the time this
+  // runs, so it never blocks the UI and only softens the status message when
+  // there is something worth reporting.
+  const mirrorPrescriptionImage = (prescriptionId, image, baseMessage) => {
+    uploadPrescriptionFile(user, prescriptionId, image, { syncNow: cloudSyncNow }).then((result) => {
+      const note = cloudBackupNote(result)
+      if (!note) return
+      setPrescriptionPhotoFeedback((current) => ({ ...current, [prescriptionId]: `${baseMessage}${note}` }))
+    })
+  }
+  mirrorPrescriptionImageRef.current = mirrorPrescriptionImage
 
   const attachPrescriptionImage = async (prescriptionId, source) => {
     if (!user?.uid || prescriptionPhotoBusyId) return
@@ -927,6 +947,7 @@ function App() {
       updatePrescriptionImageUrl(prescriptionId, image)
       setPrescriptionImageRevision((current) => current + 1)
       setPrescriptionPhotoFeedback((current) => ({ ...current, [prescriptionId]: 'Prescription image saved on this device.' }))
+      mirrorPrescriptionImage(prescriptionId, image, 'Prescription image saved on this device.')
     } catch (error) {
       setPrescriptionPhotoFeedback((current) => ({
         ...current,
@@ -958,6 +979,7 @@ function App() {
       updatePrescriptionImageUrl(prescriptionId, image)
       setPrescriptionImageRevision((current) => current + 1)
       setPrescriptionPhotoFeedback((current) => ({ ...current, [prescriptionId]: 'Prescription image saved on this device.' }))
+      mirrorPrescriptionImage(prescriptionId, image, 'Prescription image saved on this device.')
     } catch (error) {
       setPrescriptionPhotoFeedback((current) => ({
         ...current,
@@ -975,6 +997,11 @@ function App() {
       updatePrescriptionImageUrl(prescriptionId, null)
       setPrescriptionImageRevision((current) => current + 1)
       setPrescriptionPhotoFeedback((current) => ({ ...current, [prescriptionId]: 'Prescription image removed from this device.' }))
+      deletePrescriptionFile(user, prescriptionId).then((result) => {
+        const note = cloudBackupNote(result)
+        if (!note) return
+        setPrescriptionPhotoFeedback((current) => ({ ...current, [prescriptionId]: `Prescription image removed from this device.${note}` }))
+      })
     } catch {
       setPrescriptionPhotoFeedback((current) => ({ ...current, [prescriptionId]: 'Unable to remove the prescription image.' }))
     }

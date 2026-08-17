@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { isCloudEnabled } from './config.js'
 import { ensureCloudSession } from './session.js'
 import { buildSyncSnapshot } from './mappers.js'
@@ -9,7 +9,10 @@ import { cloudApi } from './apiClient.js'
 // swallowed — the app never blocks on or breaks because of the cloud. When
 // VITE_MEDLOOP_API_URL is unset, this is a no-op returning 'disabled'.
 //
-// status: 'disabled' | 'connecting' | 'syncing' | 'synced' | 'offline'
+// Returns { status, syncNow }, where status is one of
+// 'disabled' | 'connecting' | 'syncing' | 'synced' | 'offline'. syncNow pushes
+// immediately rather than waiting out the debounce — file uploads need the
+// prescription row to exist server-side before they can attach to it.
 export function useCloudSync({ user, state, accountReady }) {
   const [status, setStatus] = useState(() => (isCloudEnabled() ? 'connecting' : 'disabled'))
   const sessionRef = useRef(null)
@@ -17,17 +20,19 @@ export function useCloudSync({ user, state, accountReady }) {
   const timerRef = useRef(null)
   stateRef.current = state
 
-  async function push() {
+  const push = useCallback(async () => {
     const session = sessionRef.current
-    if (!session?.token) return
+    if (!session?.token) return false
     setStatus('syncing')
     try {
       await cloudApi.sync(session.token, buildSyncSnapshot(stateRef.current))
       setStatus('synced')
+      return true
     } catch {
       setStatus('offline')
+      return false
     }
-  }
+  }, [])
 
   // Establish (or drop) the cloud session as the signed-in account changes.
   useEffect(() => {
@@ -65,7 +70,7 @@ export function useCloudSync({ user, state, accountReady }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state, accountReady, user])
 
-  return status
+  return { status, syncNow: push }
 }
 
 // Short label for the app shell's sync indicator.
