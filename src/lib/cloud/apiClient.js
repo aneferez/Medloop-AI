@@ -53,6 +53,9 @@ export const cloudApi = {
   meta: () => request('/meta'),
   registerDevice: (payload) => request('/auth/register', { method: 'POST', body: payload }),
   session: (token) => request('/auth/session', { token }),
+  // Device pairing — the only way to join an existing account.
+  createLinkCode: (token) => request('/auth/link-code', { method: 'POST', token }),
+  redeemLinkCode: (payload) => request('/auth/link-code/redeem', { method: 'POST', body: payload }),
   linkDevice: (token, payload) => request('/auth/link-device', { method: 'POST', token, body: payload }),
   updateDeviceToken: (token, fcmToken) => request('/auth/device', { method: 'PATCH', token, body: { fcmToken } }),
   revokeDevice: (token) => request('/auth/revoke', { method: 'POST', token }),
@@ -106,8 +109,11 @@ export const cloudApi = {
     runs: (token) => request('/jobs/runs', { token }),
   },
 
-  // Snapshot sync (Module G) — push the local-first state up to the cloud
+  // Snapshot sync (Module G) — push the local-first state up to the cloud.
+  // The snapshot may carry `prune: true`, which lets the push delete rows it
+  // omits; only send that once this device has pulled and merged.
   sync: (token, snapshot) => request('/sync', { method: 'PUT', token, body: snapshot }),
+  pullSnapshot: (token) => request('/sync', { token }),
 
   // Records + prescription files
   prescriptions: { list: (token) => request('/prescriptions', { token }) },

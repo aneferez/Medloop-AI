@@ -42,6 +42,29 @@ export async function ensureCloudSession(user) {
   return session
 }
 
+// Mints a pairing code on this (already registered) device, for another device
+// to redeem. Returns { code, expiresAt, expiresInMinutes }.
+export async function createLinkCode(user) {
+  const session = await ensureCloudSession(user)
+  return cloudApi.createLinkCode(session.token)
+}
+
+// Redeems a code minted elsewhere, replacing this account's stored session so
+// the app now talks to the existing cloud account rather than a fresh one. The
+// caller is responsible for pulling the snapshot afterwards.
+export async function redeemLinkCode(user, code) {
+  const result = await cloudApi.redeemLinkCode({
+    code,
+    platform: detectPlatform(),
+    deviceLabel: 'MedLoop app',
+  })
+  const session = { token: result.token, patientId: result.patientId, deviceId: result.deviceId }
+  const storageId = storageIdFor(user)
+  await setSecureValue(sessionKey(storageId), session)
+  cache.set(storageId, session)
+  return session
+}
+
 // Forgets the cloud session locally (used on account deletion).
 export async function clearCloudSession(user) {
   const storageId = storageIdFor(user)

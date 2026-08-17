@@ -344,7 +344,13 @@ function App() {
   const accountUsesPassword = true
 
   // Best-effort cloud mirror (no-op unless VITE_MEDLOOP_API_URL is configured).
-  const { status: cloudStatus, syncNow: cloudSyncNow } = useCloudSync({ user, state, accountReady })
+  const { status: cloudStatus, syncNow: cloudSyncNow } = useCloudSync({
+    user,
+    state,
+    accountReady,
+    // Records this device has never seen — e.g. signing in on a second phone.
+    onAdopt: (merged) => setState(merged),
+  })
 
   // Register this device for native push and send its FCM token to the backend
   // (native-only; no-op on web or when the cloud is disabled).

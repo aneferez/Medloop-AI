@@ -98,6 +98,120 @@ export function settingsToCloud(settings = {}) {
   }
 }
 
+// ---- Cloud -> local ---------------------------------------------------------
+// Only ever applied to records this device has not seen before (see
+// mergeCloudSnapshot), so the lossy edges stay harmless: `refill` is a
+// three-state label locally but a boolean in the cloud, and an appointment's
+// local `status` never leaves the device, so both take a sensible default.
+
+export function familyMemberFromCloud(member) {
+  return {
+    id: String(member.id),
+    name: member.name || '',
+    relationship: member.relationship || 'Family member',
+    phone: member.phone || '',
+    whatsappNumber: member.whatsappNumber || '',
+    alertLevel: member.alertLevel || 'Level 3',
+    age: member.age ?? '',
+    bloodGroup: member.bloodGroup ?? '',
+    allergies: member.allergies ?? '',
+  }
+}
+
+export function medicineFromCloud(medicine) {
+  return {
+    id: String(medicine.id),
+    name: medicine.name || '',
+    dosage: medicine.dosage || '',
+    memberId: medicine.memberId ? String(medicine.memberId) : '',
+    morningTime: medicine.morningTime || '',
+    afternoonTime: medicine.afternoonTime || '',
+    nightTime: medicine.nightTime || '',
+    enabledDosePeriods: Array.isArray(medicine.enabledPeriods) ? medicine.enabledPeriods : [],
+    important: Boolean(medicine.important),
+    refill: medicine.refill ? 'Refill needed' : 'On track',
+    stockRemaining: typeof medicine.stockRemaining === 'number' ? medicine.stockRemaining : '',
+    doseUnitsPerDose: medicine.doseUnitsPerDose ?? 1,
+    stockBufferDays: medicine.stockBufferDays ?? 7,
+    stockUnitLabel: medicine.stockUnitLabel || 'tablets',
+  }
+}
+
+export function prescriptionFromCloud(prescription) {
+  return {
+    id: String(prescription.id),
+    doctor: prescription.doctor || '',
+    clinic: prescription.clinic || '',
+    notes: prescription.notes || '',
+  }
+}
+
+export function appointmentFromCloud(appointment) {
+  return {
+    id: String(appointment.id),
+    doctor: appointment.doctor || '',
+    clinic: appointment.clinic || 'Clinic',
+    date: appointment.date,
+    time: appointment.time || '09:00',
+    status: 'Upcoming',
+  }
+}
+
+export function doseLogFromCloud(log) {
+  return {
+    id: String(log.id),
+    medicineId: log.medicineId ?? null,
+    memberId: log.memberId ?? null,
+    medicineName: log.medicineName || '',
+    dosage: log.dosage || '',
+    scheduledTime: log.scheduledTime || null,
+    dosePeriod: log.dosePeriod || null,
+    status: log.status,
+    doseDate: log.doseDate,
+    stockRemainingAfter: typeof log.stockAfter === 'number' ? log.stockAfter : null,
+    recordedAt: log.recordedAt,
+  }
+}
+
+function mergeById(localList, cloudList, fromCloud) {
+  const local = Array.isArray(localList) ? localList : []
+  const known = new Set(local.map((item) => String(item.id)))
+  const adopted = (Array.isArray(cloudList) ? cloudList : [])
+    .filter((item) => item && item.id != null && !known.has(String(item.id)))
+    .map(fromCloud)
+  return { list: adopted.length ? [...local, ...adopted] : local, adopted: adopted.length }
+}
+
+// Union by record id, with the local copy winning any id present on both sides:
+// this device's records are the ones the user is looking at and editing.
+//
+// Deletes do not propagate through this merge — a record deleted on another
+// device is simply absent from the snapshot and so is left alone here, and this
+// device will push it back. Propagating deletions needs tombstones.
+//
+// Settings are deliberately untouched: they are device-level preferences.
+export function mergeCloudSnapshot(state = {}, snapshot) {
+  if (!snapshot || typeof snapshot !== 'object') return { state, adopted: 0 }
+  const family = mergeById(state.familyMembers, snapshot.familyMembers, familyMemberFromCloud)
+  const medicines = mergeById(state.medicines, snapshot.medicines, medicineFromCloud)
+  const prescriptions = mergeById(state.prescriptions, snapshot.prescriptions, prescriptionFromCloud)
+  const appointments = mergeById(state.appointments, snapshot.appointments, appointmentFromCloud)
+  const doseLogs = mergeById(state.doseLogs, snapshot.doseLogs, doseLogFromCloud)
+  const adopted = family.adopted + medicines.adopted + prescriptions.adopted + appointments.adopted + doseLogs.adopted
+  if (!adopted) return { state, adopted: 0 }
+  return {
+    state: {
+      ...state,
+      familyMembers: family.list,
+      medicines: medicines.list,
+      prescriptions: prescriptions.list,
+      appointments: appointments.list,
+      doseLogs: doseLogs.list,
+    },
+    adopted,
+  }
+}
+
 // Assembles the full snapshot the app PUTs to /sync.
 export function buildSyncSnapshot(state = {}) {
   const familyMembers = Array.isArray(state.familyMembers) ? state.familyMembers : []

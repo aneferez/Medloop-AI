@@ -2,6 +2,84 @@ import { Avatar, Button, Stack } from '@mui/material'
 import { useState } from 'react'
 import { BellRing, Download, FileText, HardDrive, ShieldCheck, Smartphone, Trash2, Upload } from 'lucide-react'
 import { defaultSettings, sanitizeSettings, validateSettingsForm } from '../lib/settings'
+import { isCloudEnabled } from '../lib/cloud/config'
+import { createLinkCode, redeemLinkCode } from '../lib/cloud/session'
+
+// Pairing a second device. Self-contained because it talks to the cloud
+// session directly and has no bearing on the local-first settings around it;
+// the whole panel hides when the cloud backend is not configured.
+function DevicePairingPanel({ user }) {
+  const [code, setCode] = useState('')
+  const [expiresAt, setExpiresAt] = useState('')
+  const [entered, setEntered] = useState('')
+  const [busy, setBusy] = useState('')
+  const [feedback, setFeedback] = useState('')
+  const [error, setError] = useState('')
+
+  if (!isCloudEnabled() || !user) return null
+
+  const generate = async () => {
+    setBusy('generate'); setError(''); setFeedback('')
+    try {
+      const result = await createLinkCode(user)
+      setCode(result.code)
+      setExpiresAt(result.expiresAt)
+      setFeedback(`Enter this on your other device within ${result.expiresInMinutes} minutes.`)
+    } catch (cause) {
+      setError(cause?.message || 'Could not create a pairing code.')
+    } finally {
+      setBusy('')
+    }
+  }
+
+  const redeem = async (event) => {
+    event.preventDefault()
+    setBusy('redeem'); setError(''); setFeedback('')
+    try {
+      await redeemLinkCode(user, entered)
+      setEntered('')
+      setFeedback('This device is now linked. Your records will appear shortly.')
+    } catch (cause) {
+      setError(cause?.message || 'Could not link this device.')
+    } finally {
+      setBusy('')
+    }
+  }
+
+  return (
+    <section className="panel-card">
+      <div className="section-header"><div><p className="section-kicker">Account access</p><h2>Linked devices</h2></div><Smartphone size={20} /></div>
+      <p>Use a pairing code to open the same MedLoop records on another phone. Codes last 10 minutes and work once.</p>
+
+      <div className="pairing-row">
+        <button className="secondary-btn" disabled={busy === 'generate'} onClick={generate} type="button">
+          {busy === 'generate' ? 'Creating...' : 'Create a pairing code'}
+        </button>
+        {code ? <output className="pairing-code" aria-live="polite">{code}</output> : null}
+      </div>
+      {code && expiresAt ? <p className="helper-text">Expires at {new Date(expiresAt).toLocaleTimeString()}.</p> : null}
+
+      <form className="pairing-row" onSubmit={redeem}>
+        <label className="field grow">
+          <span>Have a code from your other device?</span>
+          <input
+            aria-label="Pairing code"
+            autoComplete="one-time-code"
+            onChange={(event) => setEntered(event.target.value)}
+            placeholder="ABCDE-FGHJK"
+            value={entered}
+          />
+        </label>
+        <button className="primary-btn" disabled={!entered.trim() || busy === 'redeem'} type="submit">
+          {busy === 'redeem' ? 'Linking...' : 'Link this device'}
+        </button>
+      </form>
+
+      {feedback ? <p className="helper-text">{feedback}</p> : null}
+      {error ? <p className="error-text">{error}</p> : null}
+    </section>
+  )
+}
 
 function SettingsPage({
   user,
@@ -137,6 +215,8 @@ function SettingsPage({
         </form>
         <div className="settings-list">{items.map(({ icon: Icon, title, description, status }) => <div className="settings-row" key={title}><span className="settings-icon"><Icon size={18} /></span><div><strong>{title}</strong><p>{description}</p></div><span className={`status-badge ${status === 'Enabled' || status === 'Local' ? 'success' : ''}`}>{status}</span></div>)}</div>
       </section>
+
+      <DevicePairingPanel user={user} />
 
       <section className="panel-card">
         <div className="section-header"><div><p className="section-kicker">Privacy and safety</p><h2>Legal information</h2></div><ShieldCheck size={20} /></div>

@@ -214,6 +214,26 @@ html body {
   letter-spacing: 0.01em;
 }
 
+.pairing-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.pairing-code {
+  padding: 8px 12px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-subtle);
+  color: var(--text);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
 .app-footer span {
   /* An ink use, so it takes an ink token — --border-strong left this separator
      at 1.5:1 in light and 2.0:1 in dark. */

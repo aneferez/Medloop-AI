@@ -31,4 +31,6 @@ export const PUBLIC_ROUTES = new Set([
   'GET /health',
   'GET /meta',
   'POST /auth/register',
+  // The redeeming device has no token yet — the code is the credential.
+  'POST /auth/link-code/redeem',
 ])

@@ -1,11 +1,17 @@
 import Database from 'better-sqlite3'
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import worker from '../../worker/src/index.js'
 
 const here = dirname(fileURLToPath(import.meta.url))
-const SCHEMA = readFileSync(join(here, '../../worker/migrations/0001_initial_schema.sql'), 'utf8')
+// Every migration in order, so a new one is covered without touching this file.
+const MIGRATIONS_DIR = join(here, '../../worker/migrations')
+const SCHEMA = readdirSync(MIGRATIONS_DIR)
+  .filter((name) => name.endsWith('.sql'))
+  .sort()
+  .map((name) => readFileSync(join(MIGRATIONS_DIR, name), 'utf8'))
+  .join('\n')
 
 // Wraps an in-memory better-sqlite3 database in the D1 binding shape the Worker
 // expects: prepare(sql).bind(...params).{first,all,run}() and batch([...]). This

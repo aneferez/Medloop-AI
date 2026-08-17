@@ -36,12 +36,33 @@ describe('integration — snapshot sync (PUT /sync)', () => {
     expect(family.data.members[0].name).toBe('Asha Updated')
   })
 
-  it('deletes rows the snapshot no longer contains', async () => {
+  it('deletes rows the snapshot no longer contains when pruning', async () => {
     const { token } = await client.register()
     await client.call('PUT', '/v1/sync', { token, body: snapshot })
-    await client.call('PUT', '/v1/sync', { token, body: { familyMembers: [], medicines: [] } })
+    await client.call('PUT', '/v1/sync', { token, body: { familyMembers: [], medicines: [], prune: true } })
     expect((await client.call('GET', '/v1/family', { token })).data.members).toHaveLength(0)
     expect((await client.call('GET', '/v1/medicines', { token })).data.medicines).toHaveLength(0)
+  })
+
+  it('keeps rows the snapshot omits when not pruning', async () => {
+    const { token } = await client.register()
+    await client.call('PUT', '/v1/sync', { token, body: snapshot })
+    const res = await client.call('PUT', '/v1/sync', { token, body: { familyMembers: [], medicines: [] } })
+
+    expect(res.data.synced.pruned).toBe(false)
+    expect((await client.call('GET', '/v1/family', { token })).data.members).toHaveLength(1)
+    expect((await client.call('GET', '/v1/medicines', { token })).data.medicines).toHaveLength(1)
+  })
+
+  it('keeps a medicine linked to a member the partial push omitted', async () => {
+    const { token } = await client.register()
+    await client.call('PUT', '/v1/sync', { token, body: snapshot })
+    // A push that carries the medicine but not the family member must not sever
+    // the link just because the member was absent from this payload.
+    await client.call('PUT', '/v1/sync', { token, body: { familyMembers: [], medicines: snapshot.medicines } })
+
+    const medicines = await client.call('GET', '/v1/medicines', { token })
+    expect(medicines.data.medicines[0].memberId).toBe('f1')
   })
 
   it('never lets one patient overwrite another patient by id (cross-tenant guard)', async () => {
@@ -79,7 +100,7 @@ describe('integration — prescriptions & appointments sync', () => {
   it('deletes records dropped from the snapshot', async () => {
     const { token } = await client.register()
     await client.call('PUT', '/v1/sync', { token, body: { prescriptions: [{ id: 'p1', doctor: 'Dr K' }], appointments: [{ id: 'a1', doctor: 'Dr K', date: '2026-09-01' }] } })
-    await client.call('PUT', '/v1/sync', { token, body: { prescriptions: [], appointments: [] } })
+    await client.call('PUT', '/v1/sync', { token, body: { prescriptions: [], appointments: [], prune: true } })
     expect((await client.call('GET', '/v1/prescriptions', { token })).data.prescriptions).toHaveLength(0)
     expect((await client.call('GET', '/v1/appointments', { token })).data.appointments).toHaveLength(0)
   })
@@ -156,5 +177,80 @@ describe('integration — scheduled jobs', () => {
     const run = await client.call('POST', '/v1/jobs/restock-check', { token })
     expect(run.data.needs).toBeGreaterThan(0)
     expect(run.data.alertId).toBeTruthy()
+  })
+})
+
+describe('integration — snapshot pull (GET /sync)', () => {
+  const snapshot = {
+    familyMembers: [{ id: 'f1', name: 'Asha', alertLevel: 'Level 1', isPrimaryEmergency: true, phone: '+14155550123' }],
+    medicines: [{ id: 'm1', name: 'Metformin', memberId: 'f1', enabledPeriods: ['morning', 'night'], stockRemaining: 10 }],
+    prescriptions: [{ id: 'p1', doctor: 'Dr K', clinic: 'City', notes: 'after food' }],
+    appointments: [{ id: 'a1', doctor: 'Dr K', date: '2026-09-01', time: '10:30' }],
+    doseLogs: [{ id: 'd1', status: 'taken', doseDate: '2026-08-16', medicineId: 'm1', dosePeriod: 'morning', recordedAt: '2026-08-16T08:00:00.000Z' }],
+    settings: { pushEnabled: true, whatsappEnabled: true, reminderLeadMinutes: 15 },
+  }
+
+  it('requires authentication', async () => {
+    expect((await client.call('GET', '/v1/sync')).status).toBe(401)
+  })
+
+  it('returns an empty snapshot for a fresh account', async () => {
+    const { token } = await client.register()
+    const res = await client.call('GET', '/v1/sync', { token })
+
+    expect(res.status).toBe(200)
+    expect(res.data.familyMembers).toEqual([])
+    expect(res.data.medicines).toEqual([])
+    expect(res.data.doseLogs).toEqual([])
+  })
+
+  it('round-trips a pushed snapshot back in the shape PUT accepts', async () => {
+    const { token } = await client.register()
+    await client.call('PUT', '/v1/sync', { token, body: snapshot })
+    const res = await client.call('GET', '/v1/sync', { token })
+
+    expect(res.data.familyMembers[0]).toMatchObject({ id: 'f1', name: 'Asha', alertLevel: 'Level 1', isPrimaryEmergency: true })
+    expect(res.data.medicines[0]).toMatchObject({ id: 'm1', memberId: 'f1', stockRemaining: 10 })
+    expect(res.data.medicines[0].enabledPeriods).toEqual(['morning', 'night'])
+    expect(res.data.prescriptions[0]).toMatchObject({ id: 'p1', doctor: 'Dr K', hasFile: false })
+    expect(res.data.appointments[0]).toMatchObject({ id: 'a1', date: '2026-09-01', time: '10:30' })
+    expect(res.data.doseLogs[0]).toMatchObject({ id: 'd1', status: 'taken', doseDate: '2026-08-16' })
+    expect(res.data.settings).toMatchObject({ pushEnabled: true, whatsappEnabled: true, reminderLeadMinutes: 15 })
+
+    // the pulled snapshot is directly re-pushable
+    expect((await client.call('PUT', '/v1/sync', { token, body: res.data })).status).toBe(200)
+  })
+
+  it('never leaks another account\'s snapshot', async () => {
+    const owner = await client.register({ email: 'owner@example.com' })
+    await client.call('PUT', '/v1/sync', { token: owner.token, body: snapshot })
+    const stranger = await client.register({ email: 'stranger@example.com' })
+
+    const res = await client.call('GET', '/v1/sync', { token: stranger.token })
+    expect(res.data.medicines).toEqual([])
+    expect(res.data.familyMembers).toEqual([])
+  })
+
+  it('an un-merged client pushing empty state cannot wipe the account', async () => {
+    const { token } = await client.register()
+    await client.call('PUT', '/v1/sync', { token, body: snapshot })
+
+    // A client holding a valid session but no local records — reinstalled,
+    // storage cleared, or simply pushing before its local state hydrated.
+    // Without the prune guard this push destroyed the account.
+    await client.call('PUT', '/v1/sync', {
+      token,
+      body: { familyMembers: [], medicines: [], prescriptions: [], appointments: [], doseLogs: [] },
+    })
+
+    const stillThere = await client.call('GET', '/v1/sync', { token })
+    expect(stillThere.data.medicines).toHaveLength(1)
+    expect(stillThere.data.familyMembers).toHaveLength(1)
+    expect(stillThere.data.prescriptions).toHaveLength(1)
+
+    // and once it has pulled, it may prune again
+    const pulled = await client.call('GET', '/v1/sync', { token })
+    await client.call('PUT', '/v1/sync', { token, body: { ...pulled.data, medicines: [], prune: true } })
+    expect((await client.call('GET', '/v1/sync', { token })).data.medicines).toHaveLength(0)
   })
 })

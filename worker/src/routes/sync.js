@@ -225,21 +225,126 @@ async function upsertSettings(db, patientId, raw, now) {
   await db.run(`UPDATE patient_settings SET ${clauses.join(', ')} WHERE patient_id = ?`, [...params, patientId])
 }
 
+function parsePeriods(raw) {
+  try {
+    const value = JSON.parse(raw || '[]')
+    return Array.isArray(value) ? value.filter((period) => DOSE_PERIODS.includes(period)) : []
+  } catch {
+    return []
+  }
+}
+
 export function registerSyncRoutes(router) {
+  // The snapshot the app pulls before its first push, in the same shape PUT
+  // accepts, so a second device can adopt an existing account's records.
+  router.get('/sync', async (ctx) => {
+    const patientId = ctx.auth.patient.id
+    const family = await ctx.db.all('SELECT * FROM family_members WHERE patient_id = ?', [patientId])
+    const medicines = await ctx.db.all('SELECT * FROM medicines WHERE patient_id = ?', [patientId])
+    const prescriptions = await ctx.db.all('SELECT * FROM prescriptions WHERE patient_id = ?', [patientId])
+    const appointments = await ctx.db.all('SELECT * FROM appointments WHERE patient_id = ?', [patientId])
+    const doseLogs = await ctx.db.all('SELECT * FROM dose_logs WHERE patient_id = ?', [patientId])
+    const settings = await ctx.db.first('SELECT * FROM patient_settings WHERE patient_id = ?', [patientId])
+
+    return ok({
+      familyMembers: family.map((row) => ({
+        id: row.id,
+        name: row.name,
+        relationship: row.relationship,
+        phone: row.phone,
+        whatsappNumber: row.whatsapp_number,
+        email: row.email,
+        alertLevel: row.alert_level,
+        isPrimaryEmergency: Boolean(row.is_primary_emergency),
+        notifyPush: Boolean(row.notify_push),
+        notifyWhatsapp: Boolean(row.notify_whatsapp),
+        notifyEmail: Boolean(row.notify_email),
+        notifySms: Boolean(row.notify_sms),
+        age: row.age,
+        bloodGroup: row.blood_group,
+        allergies: row.allergies,
+      })),
+      medicines: medicines.map((row) => ({
+        id: row.id,
+        name: row.name,
+        dosage: row.dosage,
+        memberId: row.member_id,
+        morningTime: row.morning_time,
+        afternoonTime: row.afternoon_time,
+        nightTime: row.night_time,
+        enabledPeriods: parsePeriods(row.enabled_periods),
+        important: Boolean(row.important),
+        refill: Boolean(row.refill),
+        stockRemaining: row.stock_remaining,
+        doseUnitsPerDose: row.dose_units_per_dose,
+        stockBufferDays: row.stock_buffer_days,
+        stockUnitLabel: row.stock_unit_label,
+      })),
+      prescriptions: prescriptions.map((row) => ({
+        id: row.id,
+        doctor: row.doctor,
+        clinic: row.clinic,
+        notes: row.notes,
+        hasFile: Boolean(row.file_key),
+      })),
+      appointments: appointments.map((row) => ({
+        id: row.id,
+        doctor: row.doctor,
+        clinic: row.clinic,
+        date: row.date,
+        time: row.time,
+      })),
+      doseLogs: doseLogs.map((row) => ({
+        id: row.id,
+        medicineId: row.medicine_id,
+        memberId: row.member_id,
+        medicineName: row.medicine_name,
+        dosage: row.dosage,
+        scheduledTime: row.scheduled_time,
+        dosePeriod: row.dose_period,
+        status: row.status,
+        takenAt: row.taken_at,
+        doseDate: row.dose_date,
+        stockAfter: row.stock_after,
+        recordedAt: row.recorded_at,
+      })),
+      settings: settings
+        ? {
+            reminderLeadMinutes: settings.reminder_lead_minutes,
+            pushEnabled: Boolean(settings.push_enabled),
+            whatsappEnabled: Boolean(settings.whatsapp_enabled),
+            emailEnabled: Boolean(settings.email_enabled),
+          }
+        : null,
+    })
+  })
+
   router.put('/sync', async (ctx) => {
     const body = await readJsonBody(ctx.request)
     const patientId = ctx.auth.patient.id
     const now = nowIso()
-    const summary = { family: 0, medicines: 0, prescriptions: 0, appointments: 0, doses: 0, settings: false }
+    // Pruning deletes every row the snapshot omits — with an empty snapshot that
+    // is the whole account. A client may only ask for it once it has pulled and
+    // merged, so a fresh device signing in can never wipe the existing records.
+    const prune = body.prune === true
+    const summary = { family: 0, medicines: 0, prescriptions: 0, appointments: 0, doses: 0, settings: false, pruned: prune }
 
     // Family first so medicine member_id references resolve.
     let familyIds
     if (Array.isArray(body.familyMembers)) {
       const members = body.familyMembers.map(sanitizeFamily).filter(Boolean)
-      familyIds = new Set(members.map((member) => member.id))
+      const pushedIds = new Set(members.map((member) => member.id))
       const statements = members.map((member) => upsertFamily(patientId, member, now))
-      statements.push(deleteMissing('family_members', patientId, [...familyIds]))
-      await ctx.db.batch(statements)
+      if (prune) statements.push(deleteMissing('family_members', patientId, [...pushedIds]))
+      if (statements.length) await ctx.db.batch(statements)
+      // Without pruning the rows this snapshot omits survive, so medicine
+      // member_id references must be checked against those too — otherwise a
+      // partial push would null out links to members it simply did not carry.
+      familyIds = pushedIds
+      if (!prune) {
+        const rows = await ctx.db.all('SELECT id FROM family_members WHERE patient_id = ?', [patientId])
+        familyIds = new Set([...pushedIds, ...rows.map((row) => row.id)])
+      }
       summary.family = members.length
     } else {
       const rows = await ctx.db.all('SELECT id FROM family_members WHERE patient_id = ?', [patientId])
@@ -249,24 +354,24 @@ export function registerSyncRoutes(router) {
     if (Array.isArray(body.medicines)) {
       const medicines = body.medicines.map((medicine) => sanitizeMedicine(medicine, familyIds)).filter(Boolean)
       const statements = medicines.map((medicine) => upsertMedicine(patientId, medicine, now))
-      statements.push(deleteMissing('medicines', patientId, medicines.map((medicine) => medicine.id)))
-      await ctx.db.batch(statements)
+      if (prune) statements.push(deleteMissing('medicines', patientId, medicines.map((medicine) => medicine.id)))
+      if (statements.length) await ctx.db.batch(statements)
       summary.medicines = medicines.length
     }
 
     if (Array.isArray(body.prescriptions)) {
       const items = body.prescriptions.map(sanitizePrescription).filter(Boolean)
       const statements = items.map((item) => upsertPrescription(patientId, item, now))
-      statements.push(deleteMissing('prescriptions', patientId, items.map((item) => item.id)))
-      await ctx.db.batch(statements)
+      if (prune) statements.push(deleteMissing('prescriptions', patientId, items.map((item) => item.id)))
+      if (statements.length) await ctx.db.batch(statements)
       summary.prescriptions = items.length
     }
 
     if (Array.isArray(body.appointments)) {
       const items = body.appointments.map(sanitizeAppointment).filter(Boolean)
       const statements = items.map((item) => upsertAppointment(patientId, item, now))
-      statements.push(deleteMissing('appointments', patientId, items.map((item) => item.id)))
-      await ctx.db.batch(statements)
+      if (prune) statements.push(deleteMissing('appointments', patientId, items.map((item) => item.id)))
+      if (statements.length) await ctx.db.batch(statements)
       summary.appointments = items.length
     }
 
