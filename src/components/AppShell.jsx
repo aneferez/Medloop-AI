@@ -8,8 +8,10 @@ import {
   LogIn,
   LogOut,
   Menu,
+  Moon,
   Pill,
   Settings,
+  Sun,
   ShieldPlus,
   ShieldCheck,
   Users,
@@ -18,6 +20,8 @@ import {
 import { useEffect, useState } from 'react'
 import { Avatar, IconButton, Tooltip } from '@mui/material'
 import { pages } from '../navigation'
+import { currentTheme, toggleTheme } from '../lib/theme'
+import SectionAssistant from './SectionAssistant'
 
 const navigationIcons = {
   home: Home,
@@ -33,8 +37,9 @@ const navigationIcons = {
   legal: ShieldCheck,
 }
 
-function AppShell({ currentPage, pageTitle, syncLabel, user, profilePhotoUrl, navigateTo, handleLogout, children }) {
+function AppShell({ currentPage, pageTitle, syncLabel, user, profilePhotoUrl, navigateTo, handleLogout, assistantContext, children }) {
   const [navigationOpen, setNavigationOpen] = useState(false)
+  const [theme, setTheme] = useState(() => currentTheme())
 
   useEffect(() => {
     setNavigationOpen(false)
@@ -118,6 +123,11 @@ function AppShell({ currentPage, pageTitle, syncLabel, user, profilePhotoUrl, na
             </div>
           </div>
           <div className="topbar-actions">
+            <Tooltip title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+              <button className="theme-toggle" onClick={() => setTheme(toggleTheme())} type="button" aria-label="Toggle dark mode">
+                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+              </button>
+            </Tooltip>
             <Tooltip title="Profile settings">
               <IconButton aria-label="Open profile settings" onClick={() => navigateTo('settings')} size="small">
                 <Avatar alt={user?.displayName || user?.email || 'MedLoop profile'} src={profilePhotoUrl} sx={{ width: 38, height: 38, bgcolor: 'primary.main', fontSize: '0.9rem', fontWeight: 800 }}>
@@ -135,7 +145,9 @@ function AppShell({ currentPage, pageTitle, syncLabel, user, profilePhotoUrl, na
         </header>
 
         <div className="page-content">{children}</div>
+        <footer className="app-footer">Developed by Aneruth <span aria-hidden="true">|</span> Rosaline</footer>
       </main>
+      <SectionAssistant context={assistantContext} currentPage={currentPage} navigateTo={navigateTo} user={user} />
     </div>
   )
 }

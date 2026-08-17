@@ -25,9 +25,6 @@ createRoot(document.getElementById('root')).render(
       <StartupSplash>
         <App />
       </StartupSplash>
-      <div className="developer-watermark" aria-label="Developed by Aneruth and Rosaline">
-        Developed by Aneruth | Rosaline
-      </div>
     </ThemeProvider>
   </StrictMode>,
 )
