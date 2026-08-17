@@ -158,6 +158,26 @@
 :root[data-theme="dark"] .assistant-toggle { background: var(--surface-2); border-color: var(--border); }
 :root[data-theme="dark"] .assistant-progress-track { background: var(--surface-tint); }
 
+/* Ink that was hard-coded against light surfaces and fell under 4.5:1 on dark
+   ones (worst: .text-btn:hover at 1.93). The :not() guards keep the
+   active/playing variants owning their own colours — without them these
+   selectors out-specify the light rules that set those. */
+:root[data-theme="dark"] .assistant-progress-row,
+:root[data-theme="dark"] .assistant-question-heading > div > span,
+:root[data-theme="dark"] .segmented-control button:not(.active),
+:root[data-theme="dark"] .dashboard-variant-switcher button:not(.active) { color: var(--muted); }
+:root[data-theme="dark"] .assistant-eyebrow,
+:root[data-theme="dark"] .text-btn:hover { color: var(--teal); }
+/* White on the dark palette's --primary lands at 4.47:1, just under AA. Take
+   the darker indigo and brighten on hover instead, so the affordance survives. */
+:root[data-theme="dark"] .primary-btn { background: var(--primary-dark); }
+:root[data-theme="dark"] .primary-btn:hover { background: var(--primary); }
+:root[data-theme="dark"] .assistant-voice:not(.playing) {
+  color: var(--primary-strong);
+  background: var(--primary-soft);
+  border-color: var(--border-strong);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -195,7 +215,9 @@ html body {
 }
 
 .app-footer span {
-  color: var(--border-strong);
+  /* An ink use, so it takes an ink token — --border-strong left this separator
+     at 1.5:1 in light and 2.0:1 in dark. */
+  color: var(--muted);
 }
 
 .auth-frame {
