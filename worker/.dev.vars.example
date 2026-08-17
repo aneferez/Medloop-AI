@@ -1,0 +1,27 @@
+# Local secrets for `wrangler dev`. Copy this file to `.dev.vars` (gitignored)
+# and fill in the values. In production set each one with:
+#   wrangler secret put <NAME>
+
+# Signing/entropy secret for the gateway (any long random string).
+TOKEN_SIGNING_SECRET=
+
+# Firebase Cloud Messaging — HTTP v1 API service-account credentials (Module C).
+FCM_PROJECT_ID=
+FCM_CLIENT_EMAIL=
+FCM_PRIVATE_KEY=
+
+# WhatsApp Cloud API — optional secondary alert channel (Module C).
+# See docs/WHATSAPP_SETUP.md. Without a template name, sends free-form text
+# (only valid within the 24h window — for testing). Set WHATSAPP_TEMPLATE_NAME
+# to an approved template for production proactive alerts.
+WHATSAPP_PHONE_NUMBER_ID=
+WHATSAPP_ACCESS_TOKEN=
+# WHATSAPP_TEMPLATE_NAME=medloop_alert
+# WHATSAPP_TEMPLATE_LANG=en
+
+# Email channel — optional. Uses Resend's HTTP API when both are set.
+RESEND_API_KEY=
+EMAIL_FROM=
+
+# R2 file storage (prescription images) is enabled by creating the bucket and
+# uncommenting [[r2_buckets]] in wrangler.toml — no secret required.

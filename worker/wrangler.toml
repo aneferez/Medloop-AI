@@ -1,0 +1,47 @@
+name = "medloop-api"
+main = "src/index.js"
+compatibility_date = "2026-08-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Non-secret configuration. Secrets (FCM, WhatsApp, signing keys) are set with
+# `wrangler secret put <NAME>` in production or via .dev.vars locally — never
+# commit them. See .dev.vars.example.
+[vars]
+ENVIRONMENT = "development"
+API_VERSION = "v1"
+# Comma-separated web origins allowed to call the gateway. Capacitor uses the
+# capacitor://localhost / http(s)://localhost origins; Vite dev uses 127.0.0.1.
+# Use "*" to allow any origin (development only).
+ALLOWED_ORIGINS = "capacitor://localhost,http://localhost,https://localhost,http://127.0.0.1:5174,*.pages.dev"
+
+# WhatsApp approved-template config (non-secret). Uncomment once a template is
+# approved in Meta — required for proactive alerts. See docs/WHATSAPP_SETUP.md.
+# WHATSAPP_TEMPLATE_NAME = "medloop_alert"
+# WHATSAPP_TEMPLATE_LANG = "en"
+
+# --- D1: the unified structured data layer (row #24) -------------------------
+# Create the database once with:  npm run db:create
+# then paste the printed database_id below and run:  npm run db:migrate:local
+[[d1_databases]]
+binding = "DB"
+database_name = "medloop"
+database_id = "2bbbdf0d-2ead-4e6e-b95f-fcaeac1129bd"
+migrations_dir = "migrations"
+
+# --- R2: optional file storage for prescriptions/reports/images (row #26) ----
+# Optional. The gateway auto-detects R2 and reports it as "disabled" when the
+# binding is absent. To enable:
+#   wrangler r2 bucket create medloop-files
+# then uncomment:
+# [[r2_buckets]]
+# binding = "FILES"
+# bucket_name = "medloop-files"
+
+# --- Cron: scheduled Workers (Module E) --------------------------------------
+# Times are UTC. Jobs reason in each patient's local time zone inside the
+# handler and are idempotent per period, so exact firing time is not critical.
+[triggers]
+crons = [
+  "30 16 * * *",  # ~22:00 Asia/Kolkata daily medicine check (row #13)
+  "30 3 20 * *"   # ~09:00 Asia/Kolkata monthly restock check on the 20th (row #12)
+]
