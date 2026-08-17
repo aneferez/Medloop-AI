@@ -21,7 +21,7 @@ flowchart LR
 - **Worker = API gateway (rows #1, #2).** One entry point owns routing,
   validation, security headers, CORS, and bearer-token auth. Every request is
   authenticated except a small public set (`/health`, `/meta`,
-  `/auth/register`).
+  `/auth/register`, `/auth/link-code/redeem`).
 - **D1 = the one data layer (row #24).** Medicines, stock, schedules, dose logs,
   family, alerts, notification history, emergency events, and cron-run logs live
   in a single relational store. Schema:
@@ -60,7 +60,17 @@ This keeps the system small, cheap, and operable by one person.
   `X-Frame-Options`) and an explicit CORS allow-list are applied to every
   response.
 - Email is a display/recovery label, not a login key, so it is not unique and
-  cannot be used to impersonate another patient.
+  cannot be used to impersonate another patient. Registering twice with the same
+  address creates two unrelated patients.
+- **Device pairing** is therefore the only way to reach an existing account.
+  `POST /auth/link-code` (authenticated) mints a 10-character, single-use code
+  that expires in 10 minutes and is stored only as a SHA-256 hash; minting drops
+  any earlier unused code. `POST /auth/link-code/redeem` is public — the code is
+  the credential — and returns a device token for the same patient. The code
+  alphabet omits `0/O` and `1/I/L` because it is typed or read aloud, and every
+  redemption failure returns one identical error so a caller cannot tell an
+  unknown code from a used or expired one. Redemption is not yet rate-limited;
+  the ~50 bits of entropy is what currently makes guessing impractical.
 
 ## Module map
 
@@ -72,19 +82,42 @@ This keeps the system small, cheap, and operable by one person.
 | **C · Alerts & notifications** | 3, 15, 16, 17, 18, 25 | alert service, FCM/WhatsApp, history |
 | **E · Scheduled jobs** | 12, 13, 14 | Cron: daily check, monthly restock |
 | **F · Emergency / SOS** | 20, 21, 22, 23 | SOS events, one-tap call, multi-channel |
-| **G · Frontend integration** | — | `PUT /sync` upsert + client session/mappers/`useCloudSync` |
+| **G · Frontend integration** | — | `PUT /sync` upsert + `GET /sync` pull/merge + device pairing + client session/mappers/`useCloudSync` |
 
 Build order: **A → D → B → C → E → F → G**.
 
 ## Snapshot sync (Module G)
 
 The app stays the source of truth and owns record IDs. `PUT /sync` upserts the
-local snapshot (family, medicines, settings, dose logs) into D1 keyed by those
-IDs and deletes rows the snapshot dropped — idempotent, so it runs on every
-change. Because IDs are client-authoritative, `medicine.member_id` references
-stay aligned. Every upsert is `INSERT … ON CONFLICT(id) DO UPDATE … WHERE
+local snapshot (family, medicines, prescriptions, appointments, settings, dose
+logs) into D1 keyed by those IDs — idempotent, so it runs on every change.
+Because IDs are client-authoritative, `medicine.member_id` references stay
+aligned. Every upsert is `INSERT … ON CONFLICT(id) DO UPDATE … WHERE
 patient_id = excluded.patient_id`, so an ID owned by another patient is a silent
 no-op rather than a cross-tenant overwrite. On the client, `useCloudSync` is
 best-effort and gated by `VITE_MEDLOOP_API_URL`: it registers a device session
 on sign-in and debounces a push on state change, never blocking the local-first
 UI.
+
+### Pruning is opt-in
+
+Deleting the rows a snapshot omits happens only when the request body carries
+`prune: true`. It has to be opt-in: the client always emits arrays, so any
+client holding a valid session but no local records — reinstalled, storage
+cleared, or pushing before its local state hydrated — would otherwise wipe the
+whole account on its first push. A client may set the flag only after it has
+pulled and merged. A push without the flag also treats family IDs as the union
+of the payload and the rows already stored, so a partial push cannot sever the
+medicine links pointing at members it did not carry.
+
+### Pull and merge
+
+`GET /sync` returns the account snapshot in the same shape `PUT` accepts, so a
+pulled body is directly re-pushable. On sign-in the client pulls, merges by
+record ID with the **local copy winning any conflict**, adopts anything it has
+never seen, and only then unlocks pruning.
+
+**Deletes do not propagate.** A record deleted on one device is merely absent
+from the snapshot, so another device treats it as unseen-and-local and pushes it
+back. Propagating deletions needs tombstones — a deleted-records table plus
+client-side tracking — and is not implemented.
