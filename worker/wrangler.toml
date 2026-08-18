@@ -7,7 +7,7 @@ compatibility_flags = ["nodejs_compat"]
 # `wrangler secret put <NAME>` in production or via .dev.vars locally — never
 # commit them. See .dev.vars.example.
 [vars]
-ENVIRONMENT = "development"
+ENVIRONMENT = "production"
 API_VERSION = "v1"
 # Comma-separated web origins allowed to call the gateway. Capacitor uses the
 # capacitor://localhost / http(s)://localhost origins; Vite dev uses 127.0.0.1.
