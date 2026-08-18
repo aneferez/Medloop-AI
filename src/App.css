@@ -222,6 +222,34 @@ html body {
   margin-top: 10px;
 }
 
+.device-token-tools {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.device-token-tools summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.device-token-field {
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-subtle);
+  color: var(--text);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  word-break: break-all;
+  resize: vertical;
+}
+
 .pairing-code {
   padding: 8px 12px;
   border: 1px dashed var(--border-strong);

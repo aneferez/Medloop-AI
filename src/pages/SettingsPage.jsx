@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { BellRing, Download, FileText, HardDrive, ShieldCheck, Smartphone, Trash2, Upload } from 'lucide-react'
 import { defaultSettings, sanitizeSettings, validateSettingsForm } from '../lib/settings'
 import { isCloudEnabled } from '../lib/cloud/config'
-import { createLinkCode, redeemLinkCode } from '../lib/cloud/session'
+import { createLinkCode, ensureCloudSession, redeemLinkCode } from '../lib/cloud/session'
 
 // Pairing a second device. Self-contained because it talks to the cloud
 // session directly and has no bearing on the local-first settings around it;
@@ -15,8 +15,31 @@ function DevicePairingPanel({ user }) {
   const [busy, setBusy] = useState('')
   const [feedback, setFeedback] = useState('')
   const [error, setError] = useState('')
+  const [token, setToken] = useState('')
 
   if (!isCloudEnabled() || !user) return null
+
+  const revealToken = async () => {
+    setBusy('token'); setError(''); setFeedback('')
+    try {
+      const session = await ensureCloudSession(user)
+      setToken(session.token)
+    } catch (cause) {
+      setError(cause?.message || 'Could not read this device token.')
+    } finally {
+      setBusy('')
+    }
+  }
+
+  const copyToken = async () => {
+    try {
+      await navigator.clipboard.writeText(token)
+      setFeedback('Device token copied.')
+    } catch {
+      // Clipboard API can be blocked; the field below is selectable as a fallback.
+      setFeedback('Copy blocked — long-press the token below to copy it.')
+    }
+  }
 
   const generate = async () => {
     setBusy('generate'); setError(''); setFeedback('')
@@ -74,6 +97,27 @@ function DevicePairingPanel({ user }) {
           {busy === 'redeem' ? 'Linking...' : 'Link this device'}
         </button>
       </form>
+
+      <details className="device-token-tools">
+        <summary>Developer: device token</summary>
+        <p className="helper-text">For testing push and API calls (e.g. the daily-check trigger). Treat it like a password.</p>
+        <div className="pairing-row">
+          <button className="secondary-btn" disabled={busy === 'token'} onClick={revealToken} type="button">
+            {busy === 'token' ? 'Reading…' : 'Show device token'}
+          </button>
+          {token ? <button className="secondary-btn" onClick={copyToken} type="button">Copy</button> : null}
+        </div>
+        {token ? (
+          <textarea
+            aria-label="Device token"
+            className="device-token-field"
+            onFocus={(event) => event.target.select()}
+            readOnly
+            rows={2}
+            value={token}
+          />
+        ) : null}
+      </details>
 
       {feedback ? <p className="helper-text">{feedback}</p> : null}
       {error ? <p className="error-text">{error}</p> : null}

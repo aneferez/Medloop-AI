@@ -31,6 +31,14 @@
             android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
+
+        <!-- Fallback channel for FCM notifications that don't carry a channel_id.
+             Points at the same high-importance channel the app creates at runtime
+             (src/lib/notifications.js). The Worker also sets channel_id in the
+             payload, which takes precedence; this covers anything that doesn't. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="medicine-reminders-v3" />
     </application>
 
     <!-- Permissions -->
