@@ -61,3 +61,6 @@ dependencies {
 }
 
 apply from: 'capacitor.build.gradle'
+
+// Must be last: reads google-services.json and wires up FCM.
+apply plugin: 'com.google.gms.google-services'

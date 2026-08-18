@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "677832541173",
+    "project_id": "medloopai-3004",
+    "storage_bucket": "medloopai-3004.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:677832541173:android:89aabe6a3f8cb8fe25d6bc",
+        "android_client_info": {
+          "package_name": "com.medloop.ai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCSCta3uEZ8HRTw3sZhhYpvQ7iomUO5Npw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

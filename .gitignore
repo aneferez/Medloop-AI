@@ -14,6 +14,10 @@ artifacts/
 *.local
 desktop.ini
 
+# Built APKs copied to the project root (the build output under android/ is
+# already ignored). Binary artifacts don't belong in git.
+/*.apk
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
