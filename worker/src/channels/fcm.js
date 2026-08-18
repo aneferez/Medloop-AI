@@ -77,6 +77,12 @@ function stringifyData(data) {
   return out
 }
 
+// The app creates this high-importance channel on Android (see
+// src/lib/notifications.js CHANNEL_ID) and its local reminders already fire when
+// the app is closed. FCM's channel_id takes precedence over the manifest, so
+// naming it here reuses that same channel for pushes.
+const ANDROID_CHANNEL_ID = 'medicine-reminders-v3'
+
 export async function sendPush(env, target, { title, body, data } = {}) {
   if (!isFcmConfigured(env)) return { status: 'skipped', error: 'fcm_not_configured' }
   try {
@@ -85,7 +91,22 @@ export async function sendPush(env, target, { title, body, data } = {}) {
       method: 'POST',
       headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        message: { token: target, notification: { title, body }, data: stringifyData(data) },
+        message: {
+          token: target,
+          notification: { title, body },
+          data: stringifyData(data),
+          // priority "high" is what makes Android wake and deliver while the app
+          // is closed or the device is in Doze; without it these reminders only
+          // surfaced with the app already open.
+          android: {
+            priority: 'high',
+            notification: {
+              channel_id: ANDROID_CHANNEL_ID,
+              notification_priority: 'PRIORITY_MAX',
+              default_sound: true,
+            },
+          },
+        },
       }),
     })
     const payload = await response.json().catch(() => null)
