@@ -28,14 +28,12 @@ database_name = "medloop"
 database_id = "2bbbdf0d-2ead-4e6e-b95f-fcaeac1129bd"
 migrations_dir = "migrations"
 
-# --- R2: optional file storage for prescriptions/reports/images (row #26) ----
-# Optional. The gateway auto-detects R2 and reports it as "disabled" when the
-# binding is absent. To enable:
-#   wrangler r2 bucket create medloop-files
-# then uncomment:
-# [[r2_buckets]]
-# binding = "FILES"
-# bucket_name = "medloop-files"
+# --- R2: file storage for prescriptions/reports/images (row #26) -------------
+# Bucket created 2026-08-18. The gateway auto-detects this binding; prescription
+# file routes return 503 only when it is absent.
+[[r2_buckets]]
+binding = "FILES"
+bucket_name = "medloop-files"
 
 # --- Cron: scheduled Workers (Module E) --------------------------------------
 # Times are UTC. Jobs reason in each patient's local time zone inside the
