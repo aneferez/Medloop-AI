@@ -5,14 +5,15 @@ import { nowIso, sha256Hex } from '../lib/ids.js'
 import { normalizeLinkCode } from '../lib/codes.js'
 import {
   CAREGIVER_PERMISSIONS,
+  hasPermission,
   normalizePermissions,
   toPublicCaregiverLink,
 } from '../domain/caregiver.js'
 import { FAMILY_ALERT_LEVELS } from '../domain/family.js'
 import { normalizeMedicineRow } from '../domain/medicine.js'
-import { summarizeStock } from '../domain/stock.js'
 import { localDateParts } from '../domain/schedule.js'
 import { authorizePatientAccess } from '../services/caregiverAccess.js'
+import { patientAdherence, patientStockItems, summarizeStockItems } from '../services/stockInsight.js'
 
 const patientSummary = (row) => (row ? { id: row.id, displayName: row.display_name } : null)
 
@@ -73,6 +74,41 @@ export function registerCaregiverRoutes(router) {
     return ok({ patients })
   })
 
+  // Family-aware stock rollup (feature #4): low / predicted-low medicines across
+  // every patient this caregiver can see, soonest run-out first.
+  router.get('/caregiver/inventory', async (ctx) => {
+    const user = ctx.auth.user
+    if (!user) return ok({ patients: [], alerts: [] })
+    const links = await ctx.db.all(
+      "SELECT * FROM caregiver_links WHERE caregiver_user_id = ? AND status = 'active'",
+      [user.id],
+    )
+    const patients = []
+    const alerts = []
+    for (const link of links) {
+      if (!hasPermission(link, 'view_inventory')) continue
+      const patient = await ctx.db.first('SELECT id, display_name FROM patients WHERE id = ?', [link.patient_id])
+      if (!patient) continue
+      const items = await patientStockItems(ctx.db, patient.id)
+      patients.push({ patient: { id: patient.id, displayName: patient.display_name }, ...summarizeStockItems(items) })
+      for (const item of items) {
+        if (item.low || item.prediction.predictedLow) {
+          alerts.push({
+            patientId: patient.id,
+            patientName: patient.display_name,
+            medicineId: item.id,
+            name: item.name,
+            stockRemaining: item.stockRemaining,
+            predictedDaysRemaining: item.prediction.predictedDaysRemaining,
+            predictedRunOutDate: item.prediction.predictedRunOutDate,
+          })
+        }
+      }
+    }
+    alerts.sort((a, b) => (a.predictedDaysRemaining ?? Number.MAX_SAFE_INTEGER) - (b.predictedDaysRemaining ?? Number.MAX_SAFE_INTEGER))
+    return ok({ patients, alerts })
+  })
+
   // Patient-side: list caregivers with access (pending or active).
   router.get('/caregivers', async (ctx) => {
     const rows = await ctx.db.all(
@@ -126,16 +162,18 @@ export function registerCaregiverRoutes(router) {
     return ok({ revoked: true })
   })
 
-  // Caregiver view: the patient's stock overview (permission-gated).
+  // Caregiver view: the patient's stock overview with predictions (feature #4/#6).
   router.get('/patients/:patientId/inventory', async (ctx) => {
     await authorizePatientAccess(ctx, ctx.params.patientId, 'view_inventory')
-    const rows = await ctx.db.all('SELECT * FROM medicines WHERE patient_id = ?', [ctx.params.patientId])
-    const items = rows.map((row) => {
-      const medicine = normalizeMedicineRow(row)
-      return { id: row.id, name: row.name, ...summarizeStock(medicine) }
-    })
-    const low = items.filter((item) => item.low)
-    return ok({ items, lowStockCount: low.length, lowStockIds: low.map((item) => item.id) })
+    const items = await patientStockItems(ctx.db, ctx.params.patientId)
+    return ok(summarizeStockItems(items))
+  })
+
+  // Caregiver view: the patient's adherence report (#12), permission-gated.
+  router.get('/patients/:patientId/adherence', async (ctx) => {
+    await authorizePatientAccess(ctx, ctx.params.patientId, 'view_adherence')
+    const range = Math.min(365, Math.max(1, Number(ctx.query.range) || 30))
+    return ok(await patientAdherence(ctx.db, ctx.params.patientId, { rangeDays: range }))
   })
 
   // Caregiver view: today's dose status — taken / not taken (feature #6).

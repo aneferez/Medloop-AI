@@ -465,7 +465,15 @@ OpenAPI-style annex once the model lands.
    (`tests/integration.caregiver.test.js`). *(feat #3/#6, task #6)* Full consent
    screens/policy versioning (#29) deferred to M6. *(shared code util extracted to
    `worker/src/lib/codes.js`.)*
-5. **M4 — Stock intelligence + adherence** *(feat #4, #11/#12)*.
+5. **M4 — Stock intelligence + adherence**. ✅ **done** (no migration — reads
+   existing `dose_logs`) — consumption-rate prediction in `worker/src/domain/stock.js`
+   (observed vs nominal, `predictedDaysRemaining`/`predictedRunOutDate`/`predictedLow`);
+   adherence aggregation (`worker/src/domain/adherence.js`); shared
+   `worker/src/services/stockInsight.js`; `/stock/summary` extended, new
+   `GET /adherence`, `GET /patients/:id/adherence`, and family-aware
+   `GET /caregiver/inventory` rollup; 11 tests
+   (`tests/workerStockPrediction.test.js`, `tests/integration.stock.test.js`).
+   *(feat #4, #11/#12)*
 6. **M5 — AI assistant + safety** *(feat #8, #32–35)*.
 7. **M6 — Hardening + release gate:** authz audit, rate limits, attestation,
    PII audit, export, GCP-key runbook, security review. *(#3/#4/#7/#30/#44)*
