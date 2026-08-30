@@ -1,8 +1,12 @@
-import { ok, readJsonBody } from '../lib/http.js'
+import { ok, readJsonBody, readJsonBodyOptional } from '../lib/http.js'
 import { notFound } from '../lib/errors.js'
 import { Validator } from '../lib/validate.js'
-import { newId, nowIso } from '../lib/ids.js'
+import { newId, nowIso, sha256Hex } from '../lib/ids.js'
 import { FAMILY_ALERT_LEVELS, selectLatestUpdatedMember, selectPrimaryEmergencyContact, toPublicFamilyMember } from '../domain/family.js'
+import { CAREGIVER_PERMISSIONS, DEFAULT_CAREGIVER_PERMISSIONS } from '../domain/caregiver.js'
+import { formatLinkCode, randomLinkCode } from '../lib/codes.js'
+
+const INVITE_TTL_MINUTES = 60 * 24 * 3 // caregiver invites live 3 days
 
 // Maps validated camelCase input keys to their D1 columns.
 const FIELD_COLUMNS = {
@@ -195,5 +199,45 @@ export function registerFamilyRoutes(router) {
       { sql: 'UPDATE family_members SET is_primary_emergency = 1, updated_at = ? WHERE id = ?', params: [now, existing.id] },
     ])
     return ok({ primaryEmergencyId: existing.id })
+  })
+
+  // Mint a single-use invite code so this family member can join the account with
+  // their OWN login (features #3/#6). The invite plus the caregiver's acceptance
+  // record the patient's consent to share data with them.
+  router.post('/family/:id/invite', async (ctx) => {
+    const patientId = ctx.auth.patient.id
+    const member = await ctx.db.first('SELECT * FROM family_members WHERE id = ? AND patient_id = ?', [ctx.params.id, patientId])
+    if (!member) throw notFound('Family member not found.')
+
+    const body = await readJsonBodyOptional(ctx.request)
+    const v = new Validator(body)
+    v.stringArray('permissions', { allowed: CAREGIVER_PERMISSIONS })
+    v.enum('alertLevel', FAMILY_ALERT_LEVELS)
+    const input = v.ensureValid()
+
+    const permissions = input.permissions ?? DEFAULT_CAREGIVER_PERMISSIONS
+    const alertLevel = input.alertLevel ?? member.alert_level
+    const code = randomLinkCode()
+    const now = new Date()
+    const expiresAt = new Date(now.getTime() + INVITE_TTL_MINUTES * 60 * 1000).toISOString()
+    const id = newId()
+
+    await ctx.db.batch([
+      // Only the newest pending invite for this member stays live.
+      { sql: "DELETE FROM caregiver_links WHERE patient_id = ? AND family_member_id = ? AND status = 'pending'", params: [patientId, member.id] },
+      {
+        sql: `INSERT INTO caregiver_links
+                (id, patient_id, caregiver_user_id, family_member_id, alert_level, permissions, status,
+                 invite_code_hash, invited_by_user_id, label, expires_at, created_at)
+              VALUES (?, ?, NULL, ?, ?, ?, 'pending', ?, ?, ?, ?, ?)`,
+        params: [
+          id, patientId, member.id, alertLevel, JSON.stringify(permissions),
+          await sha256Hex(code), ctx.auth.user?.id ?? null, member.name, expiresAt, now.toISOString(),
+        ],
+      },
+    ])
+
+    // Shown once — only the hash is stored.
+    return ok({ linkId: id, inviteCode: formatLinkCode(code), expiresAt, expiresInMinutes: INVITE_TTL_MINUTES }, { status: 201 })
   })
 }

@@ -67,3 +67,9 @@ export function selectMembersForAlertLevel(members = [], alertLevel = 'Level 3')
     return rank !== -1 && rank <= cutoff
   })
 }
+
+// Recipients whose level is EXACTLY this one. Used by staggered missed-dose
+// escalation (feature #7) so advancing to Level 2 does not re-notify Level 1.
+export function selectMembersAtLevel(members = [], alertLevel = 'Level 3') {
+  return members.filter((member) => member.alert_level === alertLevel)
+}

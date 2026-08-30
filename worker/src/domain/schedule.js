@@ -79,6 +79,10 @@ export function buildRestockAlert(needs) {
   }
 }
 
-// Cron schedules (UTC). Daily check ≈ 22:00 Asia/Kolkata; restock on the 20th.
+// Cron schedules (UTC). Daily check ≈ 22:00 Asia/Kolkata; restock on the 20th;
+// the escalation sweep runs every 15 minutes so a missed dose is escalated to
+// caregivers within the grace window (feature #7). It reasons in each patient's
+// local time zone, so a fixed UTC cadence is fine.
 export const DAILY_CRON = '30 16 * * *'
 export const RESTOCK_CRON = '30 3 20 * *'
+export const ESCALATION_CRON = '*/15 * * * *'

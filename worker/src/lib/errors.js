@@ -14,6 +14,8 @@ export const unauthorized = (message = 'Authentication required.') => new ApiErr
 export const forbidden = (message = 'Not allowed.') => new ApiError(403, 'forbidden', message)
 export const notFound = (message = 'Not found.') => new ApiError(404, 'not_found', message)
 export const conflict = (message, details) => new ApiError(409, 'conflict', message, details)
+export const tooManyRequests = (message = 'Too many requests. Please slow down.') =>
+  new ApiError(429, 'too_many_requests', message)
 export const unsupportedMedia = (message = 'Expected application/json request body.') =>
   new ApiError(415, 'unsupported_media_type', message)
 export const validationError = (details) =>

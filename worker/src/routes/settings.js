@@ -13,6 +13,9 @@ const SETTINGS_COLUMNS = {
   dailyCheckTime: 'daily_check_time',
   restockDay: 'restock_day',
   timezone: 'timezone',
+  doseGraceMinutes: 'dose_grace_minutes',
+  l2EscalationMinutes: 'l2_escalation_minutes',
+  escalationEnabled: 'escalation_enabled',
 }
 
 function toPublicSettings(row) {
@@ -26,6 +29,11 @@ function toPublicSettings(row) {
     dailyCheckTime: row.daily_check_time,
     restockDay: row.restock_day,
     timezone: row.timezone,
+    escalation: {
+      enabled: Boolean(row.escalation_enabled),
+      graceMinutes: row.dose_grace_minutes,       // scheduled -> Level 1
+      l2Minutes: row.l2_escalation_minutes,       // scheduled -> Level 2
+    },
     updatedAt: row.updated_at,
   }
 }
@@ -58,6 +66,9 @@ export function registerSettingsRoutes(router) {
     v.time('dailyCheckTime')
     v.integer('restockDay', { min: 1, max: 28 })
     v.string('timezone', { max: 64 })
+    v.integer('doseGraceMinutes', { min: 1, max: 240 })
+    v.integer('l2EscalationMinutes', { min: 2, max: 480 })
+    v.boolean('escalationEnabled')
     const input = v.ensureValid()
 
     const sets = []

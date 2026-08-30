@@ -9,12 +9,14 @@ import { registerEmergencyRoutes } from './emergency.js'
 import { registerSyncRoutes } from './sync.js'
 import { registerRecordRoutes } from './records.js'
 import { registerFileRoutes } from './files.js'
+import { registerCaregiverRoutes } from './caregiver.js'
 
 // Central route registry — every module's routes are wired in here.
 export function registerRoutes(router) {
   registerSystemRoutes(router)
   registerAuthRoutes(router)
   registerFamilyRoutes(router)
+  registerCaregiverRoutes(router)
   registerMedicineRoutes(router)
   registerAlertRoutes(router)
   registerSettingsRoutes(router)
@@ -31,6 +33,11 @@ export const PUBLIC_ROUTES = new Set([
   'GET /health',
   'GET /meta',
   'POST /auth/register',
+  'POST /auth/signup',
+  'POST /auth/login',
+  'POST /auth/verify-email',
+  'POST /auth/password/reset-request',
+  'POST /auth/password/reset',
   // The redeeming device has no token yet — the code is the credential.
   'POST /auth/link-code/redeem',
 ])
