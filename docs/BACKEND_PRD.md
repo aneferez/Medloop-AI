@@ -483,8 +483,14 @@ OpenAPI-style annex once the model lands.
    rate limit + `ai_requests` metadata-only audit; safe fallback when no key is
    set; 10 tests (`tests/workerAiSafety.test.js`, `tests/integration.ai.test.js`).
    *(feat #8, #32–35)*
-7. **M6 — Hardening + release gate:** authz audit, rate limits, attestation,
-   PII audit, export, GCP-key runbook, security review. *(#3/#4/#7/#30/#44)*
+7. **M6 — Hardening + release gate** (migration 0007). ✅ **done** — cross-account
+   authorization matrix (`tests/workerAuthz.test.js`); D1 rate limiter
+   (`worker/src/lib/rateLimit.js`) on signup/login/reset; PII-free scheduled-alert
+   pushes closing #7 on the cron paths (`tests/workerPushPrivacy.test.js`); optional
+   Turnstile attestation (`worker/src/middleware/attestation.js`, #4);
+   `GET /account/export` (#30); the GCP-key + secrets + pre-release checklist in
+   `docs/SECURITY_RUNBOOK.md` (#1/#44). Remaining items there are console/device
+   actions for you + the Turnstile widget for Codex. *(#3/#4/#7/#30/#44)*
 
 Codex can build M1/M2 UIs in parallel once the M1 contract is frozen.
 

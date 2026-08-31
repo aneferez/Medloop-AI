@@ -5,6 +5,8 @@ import { newId, nowIso, randomToken, sha256Hex } from '../lib/ids.js'
 import { hashPassword, verifyPassword } from '../lib/password.js'
 import { sendPasswordResetEmail, sendVerificationEmail } from '../services/accountEmail.js'
 import { formatLinkCode, normalizeLinkCode, randomLinkCode } from '../lib/codes.js'
+import { enforceRateLimit } from '../lib/rateLimit.js'
+import { isAttestationEnabled, verifyAttestation } from '../middleware/attestation.js'
 
 const PLATFORMS = ['android', 'ios', 'web']
 
@@ -107,6 +109,14 @@ export function registerAuthRoutes(router) {
     v.string('deviceLabel', { max: 60, fallback: '' })
     const input = v.ensureValid()
 
+    await enforceRateLimit(ctx.db, `signup:${input.email}`, {
+      max: Number(ctx.env.AUTH_SIGNUP_MAX) || 8, windowMinutes: 60,
+      message: 'Too many sign-up attempts. Please try again later.',
+    })
+    if (isAttestationEnabled(ctx.env) && !(await verifyAttestation(ctx.env, ctx.request, body.attestationToken))) {
+      throw forbidden('We could not verify this request. Please try again.')
+    }
+
     const existing = await ctx.db.first('SELECT id FROM users WHERE email = ?', [input.email])
     if (existing) throw conflict('An account with this email already exists. Try signing in instead.')
 
@@ -156,6 +166,11 @@ export function registerAuthRoutes(router) {
     v.string('fcmToken', { max: 4096, fallback: null })
     v.string('deviceLabel', { max: 60, fallback: '' })
     const input = v.ensureValid()
+
+    await enforceRateLimit(ctx.db, `login:${input.email}`, {
+      max: Number(ctx.env.AUTH_LOGIN_MAX) || 10, windowMinutes: 15,
+      message: 'Too many sign-in attempts. Please wait and try again.',
+    })
 
     const user = await ctx.db.first('SELECT * FROM users WHERE email = ?', [input.email])
     if (!user) {
@@ -221,6 +236,11 @@ export function registerAuthRoutes(router) {
     const v = new Validator(body)
     v.email('email', { required: true })
     const input = v.ensureValid()
+
+    await enforceRateLimit(ctx.db, `reset:${input.email}`, {
+      max: Number(ctx.env.AUTH_RESET_MAX) || 5, windowMinutes: 60,
+      message: 'Too many reset requests. Please wait and try again.',
+    })
 
     const user = await ctx.db.first('SELECT * FROM users WHERE email = ?', [input.email])
     let devFields = {}
@@ -292,6 +312,32 @@ export function registerAuthRoutes(router) {
     await ctx.db.batch(statements)
 
     return ok({ deleted: true, patientId, deletedAt: nowIso() })
+  })
+
+  // Authenticated: export all of the account's data (task #30) — the data-
+  // portability counterpart to deletion, scoped to the caller's own patient.
+  router.get('/account/export', async (ctx) => {
+    const patientId = ctx.auth.patient.id
+    const scoped = (sql) => ctx.db.all(sql, [patientId])
+    const [settings, familyMembers, medicines, doseLogs, stockEvents, prescriptions, appointments, alerts, notifications, caregivers] = await Promise.all([
+      ctx.db.first('SELECT * FROM patient_settings WHERE patient_id = ?', [patientId]),
+      scoped('SELECT * FROM family_members WHERE patient_id = ?'),
+      scoped('SELECT * FROM medicines WHERE patient_id = ?'),
+      scoped('SELECT * FROM dose_logs WHERE patient_id = ?'),
+      scoped('SELECT * FROM stock_events WHERE patient_id = ?'),
+      scoped('SELECT * FROM prescriptions WHERE patient_id = ?'),
+      scoped('SELECT * FROM appointments WHERE patient_id = ?'),
+      scoped('SELECT * FROM alerts WHERE patient_id = ?'),
+      scoped('SELECT * FROM notifications WHERE patient_id = ?'),
+      scoped('SELECT * FROM caregiver_links WHERE patient_id = ?'),
+    ])
+    return ok({
+      exportedAt: nowIso(),
+      account: { id: patientId, email: ctx.auth.patient.email, displayName: ctx.auth.patient.display_name },
+      settings: settings || null,
+      familyMembers, medicines, doseLogs, stockEvents,
+      prescriptions, appointments, alerts, notifications, caregivers,
+    })
   })
 
   // Authenticated: current session context.

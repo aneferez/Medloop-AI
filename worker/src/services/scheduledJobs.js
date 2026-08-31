@@ -6,7 +6,9 @@ import {
   buildRestockAlert,
   collectOutstandingDoses,
   collectRestockNeeds,
+  dailyCheckPush,
   localDateParts,
+  restockPush,
 } from '../domain/schedule.js'
 import {
   collectDoseOccurrences,
@@ -59,6 +61,7 @@ export async function runDailyMedicineCheck(ctx, { now = new Date() } = {}) {
     level: spec.level,
     source: 'cron',
     refId: date,
+    pushMessage: dailyCheckPush(),
   })
   return { checked: medicines.length, outstanding: outstanding.length, alertId: alert.id }
 }
@@ -96,6 +99,7 @@ export async function runRestockCheck(ctx, { now = new Date() } = {}) {
     level: spec.level,
     source: 'cron',
     refId: month,
+    pushMessage: restockPush(),
   })
   return { needs: needs.length, alertId: alert.id }
 }
