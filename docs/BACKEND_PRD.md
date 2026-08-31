@@ -474,7 +474,15 @@ OpenAPI-style annex once the model lands.
    `GET /caregiver/inventory` rollup; 11 tests
    (`tests/workerStockPrediction.test.js`, `tests/integration.stock.test.js`).
    *(feat #4, #11/#12)*
-6. **M5 — AI assistant + safety** *(feat #8, #32–35)*.
+6. **M5 — AI assistant + safety** (migration 0006). ✅ **done** — dedicated
+   MedLoop-exclusive service (`worker/src/services/aiService.js`) behind a hosted
+   Claude model (swappable in `callModel` alone), data-minimized; pure guardrails
+   (`worker/src/domain/aiSafety.js`): request refusal + output validation (no
+   diagnosis/dosing/prescription advice), educational-only disclaimer;
+   `POST /ai/simplify` + `POST /ai/assistant`, authenticated + per-user hourly
+   rate limit + `ai_requests` metadata-only audit; safe fallback when no key is
+   set; 10 tests (`tests/workerAiSafety.test.js`, `tests/integration.ai.test.js`).
+   *(feat #8, #32–35)*
 7. **M6 — Hardening + release gate:** authz audit, rate limits, attestation,
    PII audit, export, GCP-key runbook, security review. *(#3/#4/#7/#30/#44)*
 
@@ -491,16 +499,17 @@ Codex can build M1/M2 UIs in parallel once the M1 contract is frozen.
 3. **Emergency fan-out** — all contacts simultaneously. §5.G.
 4. **AI** — a dedicated MedLoop-exclusive AI service, data-minimized. §5.H.
 
-**Still needed from you:**
-1. **AI underlying model.** "MedLoop-exclusive" is settled for the *service*
-   (own key, own persona, own guardrails). The engine under it is still open:
-   **(a)** a hosted frontier model (e.g. Claude) behind the MedLoop service —
-   fastest to a high-quality, safe assistant; **(b)** a self-hosted / open model
-   — no third-party data egress, but heavier to run and lower quality. I recommend
-   (a) with strict data-minimization. Confirm which.
+**Resolved:** AI engine — a **hosted Claude model behind the MedLoop-exclusive
+service**, data-minimized (chosen 2026-08-30).
+
+**Still needed from you (secrets, not blockers — the code ships and falls back
+safely without them):**
+1. **`MEDLOOP_AI_API_KEY`** (+ optional `MEDLOOP_AI_MODEL`) as a Worker secret to
+   enable live AI. Without it, `/ai/*` still enforces guardrails + returns a safe
+   fallback.
 2. **Email sender domain** (from-address + domain you control) for verification /
-   reset, so I can set up SPF/DKIM. Doesn't block M1 build — I'll use a pluggable
-   email channel and wire the real domain when you give it.
+   reset (`RESEND_API_KEY` + `EMAIL_FROM`), so I can set up SPF/DKIM. The flows are
+   built and tested; they just need the domain to deliver in production.
 
 ---
 

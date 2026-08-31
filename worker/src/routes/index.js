@@ -10,6 +10,7 @@ import { registerSyncRoutes } from './sync.js'
 import { registerRecordRoutes } from './records.js'
 import { registerFileRoutes } from './files.js'
 import { registerCaregiverRoutes } from './caregiver.js'
+import { registerAiRoutes } from './ai.js'
 
 // Central route registry — every module's routes are wired in here.
 export function registerRoutes(router) {
@@ -17,6 +18,7 @@ export function registerRoutes(router) {
   registerAuthRoutes(router)
   registerFamilyRoutes(router)
   registerCaregiverRoutes(router)
+  registerAiRoutes(router)
   registerMedicineRoutes(router)
   registerAlertRoutes(router)
   registerSettingsRoutes(router)
