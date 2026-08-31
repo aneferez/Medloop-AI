@@ -64,7 +64,11 @@ must not be tested with a production patient’s password.
 The production web build is deployed to
 `https://medloop-app.pages.dev`; direct navigation to `/`, `/family`, and
 `/prescriptions` return the SPA shell successfully. The immutable deployment
-URL for this release is `https://6b3cdef9.medloop-app.pages.dev`.
+URL for this release is `https://516df211.medloop-app.pages.dev`.
+
+The production bundle uses explicit vendor splitting: the main entry is about
+135 kB and the largest vendor chunk is about 425 kB, below the 500 kB warning
+threshold.
 
 ## Required environment and release checks
 
