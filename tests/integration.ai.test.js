@@ -31,6 +31,17 @@ describe('integration — MedLoop AI', () => {
     expect(res.data.refused).toBe(false)
   })
 
+  it('uses the Cloudflare Workers AI binding when present (real-model path)', async () => {
+    // Inject a mock [ai] binding shaped like env.AI.run -> { response }.
+    const withAi = makeClient({ AI: { run: async () => ({ response: 'Metformin helps manage blood sugar. Take it as your doctor prescribed.' }) } })
+    const acct = (await withAi.call('POST', '/v1/auth/signup', { body: { email: `u_${rnd()}@example.com`, password: 'strong pass 8' } })).data
+    const res = await withAi.call('POST', '/v1/ai/simplify', { token: acct.token, body: { text: 'Metformin 500mg, take with food.' } })
+    expect(res.status).toBe(200)
+    expect(res.data.source).toBe('model')
+    expect(res.data.text).toContain('blood sugar')
+    expect(res.data.disclaimer.toLowerCase()).toContain('educational')
+  })
+
   it('refuses a dosing / diagnosis question to the assistant', async () => {
     const acct = await signup()
     const res = await client.call('POST', '/v1/ai/assistant', {

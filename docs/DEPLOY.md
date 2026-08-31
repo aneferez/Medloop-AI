@@ -13,8 +13,9 @@ npx wrangler secret put FCM_PRIVATE_KEY
 # email (verification / reset / alerts)
 npx wrangler secret put RESEND_API_KEY
 npx wrangler secret put EMAIL_FROM
-# MedLoop AI assistant
-npx wrangler secret put MEDLOOP_AI_API_KEY
+# MedLoop AI assistant — runs on Cloudflare Workers AI (the [ai] binding) by
+# default, no key needed. Only set this to use an Anthropic fallback instead:
+# npx wrangler secret put MEDLOOP_AI_API_KEY
 # optional
 npx wrangler secret put TURNSTILE_SECRET
 npx wrangler secret put TOKEN_SIGNING_SECRET
@@ -61,8 +62,9 @@ npx wrangler tail                       # live logs
   a column on a live DB; add a compensating migration instead.
 
 ## Notes
-- Without `MEDLOOP_AI_API_KEY` the `/ai/*` endpoints still enforce guardrails and
-  return a safe fallback — safe to deploy before the AI key is set.
+- The AI assistant runs on **Cloudflare Workers AI** (the `[ai]` binding) by
+  default — **no key needed**. `MEDLOOP_AI_API_KEY` only switches it to an
+  Anthropic fallback. Either way `/ai/*` always enforces the guardrails.
 - Without `FCM_*` / `RESEND_*` those channels record as "skipped" — deploy is safe;
   delivery turns on when the secrets are set.
 - CORS origins are in `wrangler.toml` `ALLOWED_ORIGINS` — add the production web

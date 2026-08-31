@@ -1,9 +1,11 @@
 // The dedicated MedLoop AI service (feature #8). A MedLoop-exclusive assistant:
-// its own credentials, its own persona, and the safety guardrails baked in
-// server-side (tasks #32-35). The underlying model is a hosted frontier model
-// (Anthropic Claude) reached only through this service; swapping the provider is
-// a change to callModel() alone. Data-minimized: only the text the caller sends
-// is forwarded — never patient identifiers — and only request metadata is stored.
+// its own persona and the safety guardrails baked in server-side (tasks #32-35).
+// The underlying model is **Cloudflare Workers AI** (an open model via the [ai]
+// binding — no external key, runs on the same Worker) by default, with an
+// optional Anthropic fallback if MEDLOOP_AI_API_KEY is set; swapping the engine is
+// a change to callModel() alone, and the persona + guardrails are model-agnostic.
+// Data-minimized: only the text the caller sends is forwarded — never patient
+// identifiers — and only request metadata is stored.
 
 import { newId, nowIso } from '../lib/ids.js'
 import { AI_DISCLAIMER, REFUSAL_TEXT, isUnsafeRequest, outputIsUnsafe } from '../domain/aiSafety.js'
@@ -23,8 +25,12 @@ const MEDLOOP_PERSONA =
 const SIMPLIFY_SYSTEM = `${MEDLOOP_PERSONA}\nTask: rewrite the medicine information the user provides in simple, plain language a non-expert can understand, under 120 words. Only restate what is given — do not add advice.`
 const ASSISTANT_SYSTEM = `${MEDLOOP_PERSONA}\nTask: answer the user's question about using MedLoop or understanding their medicines in general, within the rules above.`
 
+// Default open model on Workers AI (balanced quality/cost, ~200 neurons/req;
+// free tier is 10k neurons/day). Overridable with WORKERS_AI_MODEL.
+const WORKERS_AI_MODEL = '@cf/meta/llama-3.1-8b-instruct'
+
 export function isAiConfigured(env) {
-  return Boolean(env.MEDLOOP_AI_API_KEY)
+  return Boolean(env.AI || env.MEDLOOP_AI_API_KEY)
 }
 
 function rateLimitMax(env) {
@@ -53,33 +59,56 @@ async function record(db, { userId, patientId, kind, status }) {
   }
 }
 
-// Anthropic Messages API. Returns text, or null on any failure so callers fall
-// back gracefully. Only the caller-supplied text is sent.
+// Runs the prompt through MedLoop's model engine. Returns text, or null on any
+// failure/absence so callers use the safe fallback. Only the caller-supplied
+// text is sent (data minimization).
 async function callModel(env, { system, user }) {
-  if (!isAiConfigured(env)) return null
-  try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': env.MEDLOOP_AI_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: env.MEDLOOP_AI_MODEL || 'claude-sonnet-5',
+  // 1) Cloudflare Workers AI — the default engine (open model, no external key).
+  if (env.AI && typeof env.AI.run === 'function') {
+    try {
+      const result = await env.AI.run(env.WORKERS_AI_MODEL || WORKERS_AI_MODEL, {
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user', content: user },
+        ],
         max_tokens: 400,
-        system,
-        messages: [{ role: 'user', content: user }],
-      }),
-    })
-    if (!response.ok) return null
-    const data = await response.json().catch(() => null)
-    const parts = Array.isArray(data?.content) ? data.content : []
-    const text = parts.map((part) => part?.text || '').join('').trim()
-    return text || null
-  } catch {
-    return null
+        temperature: 0.2,
+      })
+      const text = String(result?.response || '').trim()
+      if (text) return text
+    } catch {
+      // fall through to the optional Anthropic path / safe fallback
+    }
   }
+
+  // 2) Optional Anthropic fallback (only if a key is configured).
+  if (env.MEDLOOP_AI_API_KEY) {
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': env.MEDLOOP_AI_API_KEY,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: env.MEDLOOP_AI_MODEL || 'claude-sonnet-5',
+          max_tokens: 400,
+          system,
+          messages: [{ role: 'user', content: user }],
+        }),
+      })
+      if (!response.ok) return null
+      const data = await response.json().catch(() => null)
+      const parts = Array.isArray(data?.content) ? data.content : []
+      const text = parts.map((part) => part?.text || '').join('').trim()
+      return text || null
+    } catch {
+      return null
+    }
+  }
+
+  return null
 }
 
 const fallbackAssistant = () =>

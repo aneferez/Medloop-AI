@@ -37,7 +37,7 @@ export function registerSystemRoutes(router) {
         email: isEmailConfigured(ctx.env),   // RESEND_API_KEY + EMAIL_FROM
         whatsapp: isWhatsappConfigured(ctx.env),
       },
-      ai: { configured: isAiConfigured(ctx.env) },       // MEDLOOP_AI_API_KEY
+      ai: { configured: isAiConfigured(ctx.env) },       // [ai] binding or MEDLOOP_AI_API_KEY
       attestation: { enabled: isAttestationEnabled(ctx.env) }, // TURNSTILE_SECRET
       storage: { r2: ctx.config.hasFiles },
     })

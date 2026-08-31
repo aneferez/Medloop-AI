@@ -35,6 +35,13 @@ migrations_dir = "migrations"
 binding = "FILES"
 bucket_name = "medloop-files"
 
+# --- Workers AI: the MedLoop assistant engine (feature #8) -------------------
+# An open model (Llama) runs on Cloudflare's GPU network via this binding — the
+# MedLoop-exclusive assistant needs no external API key. Free tier is 10k
+# neurons/day. The persona + guardrails live in src/services/aiService.js.
+[ai]
+binding = "AI"
+
 # --- Cron: scheduled Workers (Module E) --------------------------------------
 # Times are UTC. Jobs reason in each patient's local time zone inside the
 # handler and are idempotent per period, so exact firing time is not critical.
