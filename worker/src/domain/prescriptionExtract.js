@@ -36,9 +36,14 @@ export function mapFrequencyToPeriods(input) {
 
 // One raw extracted item -> the shape the medicine form pre-fills, or null when
 // there is no usable name.
+// Leading dosage-form words (Tab/Cap/Syrup/Inj…) are not part of the medicine
+// name — strip them so "Tab Metformin" becomes "Metformin".
+const FORM_PREFIX = /^(tab|tabs|tablet|tablets|cap|caps|capsule|capsules|syp|syr|syrup|susp|inj|injection|drop|drops|oint|ointment|cream|gel|sol|solution)\.?\s+/i
+
 export function normalizeExtractedMedicine(raw) {
   if (!raw || typeof raw !== 'object') return null
-  const name = String(raw.name ?? raw.medicine ?? '').trim().replace(/\s+/g, ' ').slice(0, 120)
+  const name = String(raw.name ?? raw.medicine ?? '')
+    .trim().replace(/\s+/g, ' ').replace(FORM_PREFIX, '').trim().slice(0, 120)
   if (name.length < 2) return null
   const dosage = String(raw.dosage ?? raw.strength ?? raw.dose ?? '').trim().slice(0, 120)
   const frequencyText = String(raw.frequency ?? raw.timing ?? raw.schedule ?? '').trim().slice(0, 120)

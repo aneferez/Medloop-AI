@@ -35,6 +35,11 @@ describe('prescription extract — normalize', () => {
       .toEqual({ name: 'Metformin', dosage: '500 mg', frequencyText: '1-0-1', enabledPeriods: ['morning', 'night'] })
   })
 
+  it('strips dosage-form prefixes from the name', () => {
+    expect(normalizeExtractedMedicine({ name: 'Tab. Metformin', dosage: '500 mg' }).name).toBe('Metformin')
+    expect(normalizeExtractedMedicine({ name: 'Cap Amoxicillin', dosage: '250 mg' }).name).toBe('Amoxicillin')
+  })
+
   it('drops items without a usable name', () => {
     expect(normalizeExtractedMedicine({ dosage: '500 mg' })).toBeNull()
     expect(normalizeExtractedMedicine(null)).toBeNull()
