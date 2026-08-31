@@ -25,9 +25,13 @@ const MEDLOOP_PERSONA =
 const SIMPLIFY_SYSTEM = `${MEDLOOP_PERSONA}\nTask: rewrite the medicine information the user provides in simple, plain language a non-expert can understand, under 120 words. Only restate what is given — do not add advice.`
 const ASSISTANT_SYSTEM = `${MEDLOOP_PERSONA}\nTask: answer the user's question about using MedLoop or understanding their medicines in general, within the rules above.`
 
-// Default open model on Workers AI (balanced quality/cost, ~200 neurons/req;
-// free tier is 10k neurons/day). Overridable with WORKERS_AI_MODEL.
-const WORKERS_AI_MODEL = '@cf/meta/llama-3.1-8b-instruct'
+// Default open model on Workers AI: Llama 3.2 3B — small, fast, multilingual
+// (Hindi/Tamil), and tuned for summarization, which fits MedLoop's "explain this
+// simply" job. Far lighter than the 8B, so more headroom on the free 10k
+// neurons/day tier. Override with WORKERS_AI_MODEL — e.g.
+// @cf/meta/llama-3.2-1b-instruct (lightest) or @cf/meta/llama-3.1-8b-instruct
+// (more quality).
+const WORKERS_AI_MODEL = '@cf/meta/llama-3.2-3b-instruct'
 
 export function isAiConfigured(env) {
   return Boolean(env.AI || env.MEDLOOP_AI_API_KEY)

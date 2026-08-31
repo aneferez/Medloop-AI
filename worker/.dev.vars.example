@@ -29,7 +29,7 @@ EMAIL_FROM=
 # MEDLOOP_AI_MODEL) switches to an Anthropic fallback instead; AI_RATE_LIMIT_MAX
 # overrides the per-user hourly limit. Without any engine, /ai/* still enforces
 # the guardrails and returns a safe fallback.
-# WORKERS_AI_MODEL=@cf/meta/llama-3.1-8b-instruct
+# WORKERS_AI_MODEL=@cf/meta/llama-3.2-3b-instruct   # default; -1b-instruct = lightest, -3.1-8b-instruct = more quality
 MEDLOOP_AI_API_KEY=
 # MEDLOOP_AI_MODEL=claude-sonnet-5
 # AI_RATE_LIMIT_MAX=20
