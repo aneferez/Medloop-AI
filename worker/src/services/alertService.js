@@ -3,6 +3,27 @@ import { alertMessage, planNotifications, toPublicAlert } from '../domain/notifi
 import { selectMembersAtLevel, selectMembersForAlertLevel } from '../domain/family.js'
 import { sendChannel } from '../channels/index.js'
 
+// FCM is intentionally generic. Alert titles/details can contain medicine
+// names, dosage, patient names, or other health information, so they must stay
+// behind the authenticated in-app alert view. This applies to every alert
+// source, including app-created alerts and future callers of this service.
+export function buildGenericPushMessage({ type, level } = {}) {
+  const alertType = String(type || '').toLowerCase()
+  if (alertType === 'emergency') {
+    return { title: 'MedLoop emergency update', body: 'An emergency contact update needs attention. Open MedLoop now.' }
+  }
+  if (alertType === 'restock' || alertType === 'stock') {
+    return { title: 'MedLoop supply update', body: 'A medicine supply needs review. Open MedLoop to review.' }
+  }
+  if (alertType === 'medicine') {
+    return {
+      title: level === 'Level 2' ? 'MedLoop care escalation' : 'MedLoop care update',
+      body: 'A medication check needs attention. Open MedLoop to review.',
+    }
+  }
+  return { title: 'MedLoop care update', body: 'A care update needs attention. Open MedLoop to review.' }
+}
+
 // The Notification & Alert Service (row #3). Creates an alert, resolves
 // recipients, dispatches across every enabled channel, and records a history
 // row per attempt (row #18). Reused by app-triggered alerts (Module C),
@@ -90,11 +111,12 @@ export async function dispatchAlert(ctx, { alertId, type, title, detail = '', le
   const message = pushMessage
     ? { title: String(pushMessage.title || 'MedLoop alert'), body: String(pushMessage.body || pushMessage.title || 'MedLoop alert') }
     : alertMessage({ title, detail })
+  const genericPushMessage = buildGenericPushMessage({ type, level })
   const results = []
 
   for (const plan of uniquePlans) {
     const outcome = await sendChannel(ctx.env, plan.channel, plan.target, {
-      ...message,
+      ...(plan.channel === 'push' ? genericPushMessage : message),
       data: { alertId, type, level },
     })
     const notificationId = newId()

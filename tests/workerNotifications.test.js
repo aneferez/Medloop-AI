@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { alertMessage, CHANNEL_PRIORITY, planNotifications, toPublicAlert, toPublicNotification } from '../worker/src/domain/notifications.js'
+import { buildGenericPushMessage } from '../worker/src/services/alertService.js'
 
 const familyMember = (over = {}) => ({
   id: 'f1',
@@ -72,6 +73,20 @@ describe('notification message + shapes', () => {
     expect(alertMessage({ title: 'Low stock', detail: 'Metformin: 3 left' })).toEqual({ title: 'Low stock', body: 'Metformin: 3 left' })
     expect(alertMessage({ title: 'SOS' })).toEqual({ title: 'SOS', body: 'SOS' })
     expect(alertMessage({})).toEqual({ title: 'MedLoop alert', body: 'MedLoop alert' })
+  })
+
+  it('keeps medicine and patient details out of every FCM message', () => {
+    expect(buildGenericPushMessage({
+      type: 'medicine',
+      level: 'Level 2',
+    })).toEqual({
+      title: 'MedLoop care escalation',
+      body: 'A medication check needs attention. Open MedLoop to review.',
+    })
+    expect(buildGenericPushMessage({ type: 'emergency', level: 'Level 3' })).toEqual({
+      title: 'MedLoop emergency update',
+      body: 'An emergency contact update needs attention. Open MedLoop now.',
+    })
   })
 
   it('maps alert and notification rows to API shapes', () => {
