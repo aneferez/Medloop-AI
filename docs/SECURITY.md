@@ -80,7 +80,8 @@ Deleting data inside MedLoop cannot delete previously exported backups or messag
 - IndexedDB media relies on the Android app sandbox and device-at-rest security rather than application-level encryption.
 - A rooted/compromised device or malicious accessibility/overlay software may defeat local protections.
 - Notification content can expose health-related information on a lock screen.
-- Offline local accounts are not synchronized, remotely revocable, or recoverable. Cloud device sessions are revocable through the gateway, but cloud deletion and authorization must be verified against the deployed backend before release.
+- FCM pushes intentionally use generic copy plus an opaque alert ID; medicine names, dosage, and patient details stay behind the authenticated in-app alert view. Local notifications may still expose health-related information on a lock screen.
+- Offline local accounts are not synchronized, remotely revocable, or recoverable. Cloud device sessions and account deletion are implemented through the gateway; authenticated production deletion and authorization remain release test gates.
 - The repository currently has no automated dependency scanning or CI security gate.
 - Android release builds currently set `minifyEnabled false`; code shrinking/obfuscation is not a security control and is not enabled.
 - There is no formal healthcare compliance certification. Do not claim HIPAA, GDPR, DPDP, medical-device, or other regulatory compliance without a dedicated legal/technical assessment.
