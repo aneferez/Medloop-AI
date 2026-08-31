@@ -5,6 +5,21 @@ export default defineConfig({
   plugins: [
     react(),
   ],
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          minSize: 20000,
+          groups: [
+            {
+              name: 'vendor',
+              test: /[\\/]node_modules[\\/]/,
+            },
+          ],
+        },
+      },
+    },
+  },
   test: {
     // Background-task worktrees live inside the project, so their copies of the
     // suite would otherwise be collected alongside this tree's — running
