@@ -64,7 +64,7 @@ must not be tested with a production patient’s password.
 The production web build is deployed to
 `https://medloop-app.pages.dev`; direct navigation to `/`, `/family`, and
 `/prescriptions` return the SPA shell successfully. The immutable deployment
-URL for this release is `https://516008af.medloop-app.pages.dev`.
+URL for this release is `https://6b3cdef9.medloop-app.pages.dev`.
 
 ## Required environment and release checks
 
