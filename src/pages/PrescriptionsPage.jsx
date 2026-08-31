@@ -2,6 +2,7 @@ import { Camera, FileImage, FileText, ImageUp, Sparkles, X } from 'lucide-react'
 import GuidedFormAssistant from '../components/GuidedFormAssistant'
 import RecordActions from '../components/RecordActions'
 import { OCR_SCRIPTS } from '../lib/prescriptionOcr'
+import { DOSE_PERIODS } from '../lib/medicineSchedule'
 
 function PrescriptionsPage({
   prescriptions,
@@ -18,6 +19,11 @@ function PrescriptionsPage({
   prescriptionOcrScript,
   setPrescriptionOcrScript,
   prescriptionOcr,
+  prescriptionExtraction,
+  prescriptionExtractBusy,
+  extractPrescriptionMedicines,
+  updatePrescriptionExtractionDraft,
+  reviewPrescriptionMedicineDraft,
   prescriptionPhotoFeedback,
   prescriptionPhotoBusyId,
   capturePrescriptionImage,
@@ -53,7 +59,11 @@ function PrescriptionsPage({
             <label className="field ocr-script-field"><span>OCR language</span><select aria-label="OCR language" disabled={prescriptionDraftBusy} onChange={(event) => setPrescriptionOcrScript(event.target.value)} value={prescriptionOcrScript}>{OCR_SCRIPTS.map((script) => <option key={script.value} value={script.value}>{script.label}</option>)}</select><small>Hindi uses Devanagari. Tamil is not included in Google ML Kit Text Recognition; enter Tamil text manually.</small></label>
             {prescriptionOcr?.status === 'processing' ? <p className="helper-text ocr-status" role="status">{prescriptionOcr.message}</p> : null}
             {prescriptionOcr?.message && prescriptionOcr?.status !== 'processing' ? <p className={`helper-text ocr-status ${prescriptionOcr.status === 'failed' ? 'error-text' : ''}`} role="status">{prescriptionOcr.message}</p> : null}
-            {prescriptionOcr?.text ? <div className="ocr-draft"><div><strong>OCR draft</strong><span>Review before saving</span></div><p>{prescriptionOcr.text}</p><button className="secondary-btn small" onClick={applyPrescriptionOcr} type="button">Use in instructions</button></div> : null}
+            {prescriptionOcr?.text ? <div className="ocr-draft"><div><strong>OCR draft</strong><span>Review before saving</span></div><p>{prescriptionOcr.text}</p><div className="ocr-draft-actions"><button className="secondary-btn small" onClick={applyPrescriptionOcr} type="button">Use in instructions</button>{cloudEnabled ? <button className="secondary-btn small" disabled={prescriptionExtractBusy} onClick={extractPrescriptionMedicines} type="button"><Sparkles size={15} /> {prescriptionExtractBusy ? 'Extracting…' : 'Extract medicine drafts'}</button> : null}</div></div> : null}
+            {prescriptionExtraction?.status === 'processing' ? <p className="helper-text ocr-status" role="status">{prescriptionExtraction.message}</p> : null}
+            {prescriptionExtraction?.status === 'error' ? <p className="helper-text error-text" role="alert">{prescriptionExtraction.message}</p> : null}
+            {prescriptionExtraction?.status === 'ready' && prescriptionExtraction.medicines?.length ? <section className="prescription-extraction" aria-labelledby="prescription-extraction-title"><div className="prescription-extraction-heading"><div><p className="section-kicker">Review required</p><h3 id="prescription-extraction-title">Medicine drafts</h3></div><span className="status-badge success">Not saved</span></div><p className="helper-text">These drafts came from the OCR text. Edit them, then continue to the Medicines screen to review and save normally.</p>{prescriptionExtraction.disclaimer ? <p className="extraction-disclaimer">{prescriptionExtraction.disclaimer}</p> : null}<div className="prescription-extraction-list">{prescriptionExtraction.medicines.map((draft, index) => <article className="prescription-extraction-card" key={`${draft.name}-${index}`}><div className="field-row"><label className="field"><span>Medicine</span><input aria-label={`Extracted medicine ${index + 1} name`} onChange={(event) => updatePrescriptionExtractionDraft(index, { name: event.target.value })} value={draft.name} /></label><label className="field"><span>Dosage</span><input aria-label={`Extracted medicine ${index + 1} dosage`} onChange={(event) => updatePrescriptionExtractionDraft(index, { dosage: event.target.value })} value={draft.dosage} /></label></div><fieldset className="extraction-periods"><legend>Reminder intervals</legend><div className="extraction-period-grid">{DOSE_PERIODS.map((period) => <label key={period.id}><input checked={draft.enabledPeriods.includes(period.id)} onChange={(event) => updatePrescriptionExtractionDraft(index, { enabledPeriods: event.target.checked ? [...draft.enabledPeriods, period.id] : draft.enabledPeriods.filter((periodId) => periodId !== period.id) })} type="checkbox" /> <span>{period.label}</span></label>)}</div><small>{draft.frequencyText ? `Detected frequency: ${draft.frequencyText}` : 'No timing detected — choose the prescribed intervals.'}</small></fieldset><button className="secondary-btn small" disabled={!draft.name.trim() || draft.enabledPeriods.length === 0} onClick={() => reviewPrescriptionMedicineDraft(draft)} type="button">Review in Medicines</button></article>)}</div></section> : null}
+            {prescriptionExtraction?.status === 'ready' && !prescriptionExtraction.medicines?.length ? <p className="helper-text" role="status">{prescriptionExtraction.message}</p> : null}
           </section>
           <p className="helper-text">Prescription images stay on this device and may be mirrored to your configured cloud storage. OCR is a draft only; MedLoop never changes a prescription or dosage.</p>
           {formFeedback ? <p className="helper-text">{formFeedback}</p> : null}

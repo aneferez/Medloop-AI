@@ -30,7 +30,7 @@ function detectPlatform() {
 }
 
 // Returns { token, patientId, deviceId }, registering a device on first use.
-export async function ensureCloudSession(user) {
+export async function ensureCloudSession(user, { attestationToken = '' } = {}) {
   const storageId = storageIdFor(user)
   if (cache.has(storageId)) return cache.get(storageId)
 
@@ -41,12 +41,14 @@ export async function ensureCloudSession(user) {
     return stored
   }
 
-  const result = await cloudApi.registerDevice({
+  const payload = {
     email: normalizeEmail(user?.email) || undefined,
     displayName: user?.displayName || '',
     platform: detectPlatform(),
     deviceLabel: 'MedLoop app',
-  })
+  }
+  if (attestationToken) payload.attestationToken = attestationToken
+  const result = await cloudApi.registerDevice(payload)
   const session = { token: result.token, patientId: result.patientId, deviceId: result.deviceId }
   await setSecureValue(key, session)
   cache.set(storageId, session)

@@ -13,7 +13,7 @@ import { cloudApi } from './apiClient.js'
 // 'disabled' | 'config_error' | 'connecting' | 'syncing' | 'synced' | 'offline'. syncNow pushes
 // immediately rather than waiting out the debounce — file uploads need the
 // prescription row to exist server-side before they can attach to it.
-export function useCloudSync({ user, state, accountReady, onAdopt }) {
+export function useCloudSync({ user, state, accountReady, onAdopt, attestationToken = '' }) {
   const [status, setStatus] = useState(() => (isCloudEnabled() ? 'connecting' : CLOUD_API_CONFIG_ERROR ? 'config_error' : 'disabled'))
   const sessionRef = useRef(null)
   const stateRef = useRef(state)
@@ -78,7 +78,7 @@ export function useCloudSync({ user, state, accountReady, onAdopt }) {
     // A different account means a different snapshot, so pruning is locked
     // again until this session has pulled.
     mergedRef.current = false
-    ensureCloudSession(user)
+    ensureCloudSession(user, { attestationToken })
       .then(async (session) => {
         if (!active) return
         sessionRef.current = session
@@ -90,7 +90,7 @@ export function useCloudSync({ user, state, accountReady, onAdopt }) {
       })
     return () => { active = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.uid, user?.email, accountReady])
+  }, [user?.uid, user?.email, accountReady, attestationToken])
 
   // Debounced push on state changes once a session exists.
   useEffect(() => {

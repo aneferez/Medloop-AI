@@ -29,7 +29,7 @@ async function loadPushPlugin() {
 //
 // status: 'unavailable' | 'plugin-missing' | 'denied' | 'registering'
 //         | 'registered' | 'send-failed' | 'error'
-export async function initPushNotifications(user, { onStatus = () => {}, onToken = () => {}, onAlert = () => {} } = {}) {
+export async function initPushNotifications(user, { onStatus = () => {}, onToken = () => {}, onAlert = () => {}, attestationToken = '' } = {}) {
   if (!isCloudEnabled() || !isNativePlatform()) {
     onStatus('unavailable')
     return () => {}
@@ -55,7 +55,7 @@ export async function initPushNotifications(user, { onStatus = () => {}, onToken
       const value = token?.value
       if (!value) return
       try {
-        const session = await ensureCloudSession(user)
+        const session = await ensureCloudSession(user, { attestationToken })
         await cloudApi.updateDeviceToken(session.token, value)
         onToken(value)
         onStatus('registered')
@@ -68,7 +68,7 @@ export async function initPushNotifications(user, { onStatus = () => {}, onToken
       const alertId = notification?.data?.alertId || notification?.notification?.data?.alertId
       if (!alertId) return
       try {
-        const session = await ensureCloudSession(user)
+        const session = await ensureCloudSession(user, { attestationToken })
         const result = await cloudApi.alerts.list(session.token)
         const alert = (result?.alerts || []).find((item) => String(item.id) === String(alertId))
         onAlert(alert || { id: alertId, title: 'New care update', detail: 'Open Alerts to view the secure update.' })

@@ -25,7 +25,7 @@ function AuthPage({ authMode, setAuthMode, authForm, setAuthForm, authError, res
             {authMode === 'signup' ? (
               <label className="field"><span>Name</span><input disabled={authSubmitting} value={authForm.name} onChange={(event) => setAuthForm({ ...authForm, name: event.target.value })} placeholder="Your name" /></label>
             ) : null}
-            {cloudEnabled && authMode === 'signup' ? <TurnstileWidget onToken={setAttestationToken} /> : null}
+            {cloudEnabled && (authMode === 'signup' || authMode === 'login') ? <TurnstileWidget onToken={setAttestationToken} /> : null}
             <label className="field"><span>Email</span><input disabled={authSubmitting} type="email" value={authForm.email} onChange={(event) => setAuthForm({ ...authForm, email: event.target.value })} placeholder="you@example.com" required /></label>
             <label className="field">
               <span>Password</span>

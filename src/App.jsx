@@ -58,6 +58,22 @@ const emptyMedicineForm = { id: null, name: '', dosage: '', morningTime: '08:00'
 const emptyPrescriptionForm = { id: null, doctor: '', clinic: '', notes: '' }
 const emptyAppointmentForm = { id: null, doctor: '', clinic: '', date: '', time: '' }
 
+function createEmptyPrescriptionExtraction() {
+  return { status: 'idle', medicines: [], source: '', disclaimer: '', message: '' }
+}
+
+function normalizePrescriptionExtractionDraft(raw) {
+  const enabledPeriods = Array.isArray(raw?.enabledPeriods)
+    ? [...new Set(raw.enabledPeriods.filter((periodId) => DOSE_PERIODS.some((period) => period.id === periodId)))]
+    : []
+  return {
+    name: String(raw?.name || '').trim().slice(0, 120),
+    dosage: String(raw?.dosage || '').trim().slice(0, 120),
+    frequencyText: String(raw?.frequencyText || '').trim().slice(0, 120),
+    enabledPeriods,
+  }
+}
+
 function createEmptyState() {
   return {
     familyMembers: [],
@@ -349,6 +365,8 @@ function App() {
   const [prescriptionDraftBusy, setPrescriptionDraftBusy] = useState(false)
   const [prescriptionOcrScript, setPrescriptionOcrScript] = useState('LATIN')
   const [prescriptionOcr, setPrescriptionOcr] = useState({ status: 'idle', text: '', message: '' })
+  const [prescriptionExtraction, setPrescriptionExtraction] = useState(createEmptyPrescriptionExtraction)
+  const [prescriptionExtractBusy, setPrescriptionExtractBusy] = useState(false)
   const [simplifyBusy, setSimplifyBusy] = useState(false)
   const [currentDoseDate, setCurrentDoseDate] = useState(getLocalDateKey)
   const notificationActionHandlerRef = useRef(null)
@@ -366,6 +384,7 @@ function App() {
     user,
     state,
     accountReady: accountReady && consentGiven,
+    attestationToken,
     // Records this device has never seen — e.g. signing in on a second phone.
     onAdopt: (merged) => setState(merged),
   })
@@ -381,7 +400,7 @@ function App() {
     setAppNotice(alert.title || 'New care update')
   }, [])
 
-  usePushRegistration({ user, accountReady: accountReady && consentGiven, onAlert: handleRemoteAlert })
+  usePushRegistration({ user, accountReady: accountReady && consentGiven, onAlert: handleRemoteAlert, attestationToken })
 
   useEffect(() => {
     if (!appNotice) return undefined
@@ -765,6 +784,7 @@ function App() {
     setPrescriptionForm(emptyPrescriptionForm)
     setPrescriptionDraftImage(null)
     setPrescriptionOcr({ status: 'idle', text: '', message: '' })
+    setPrescriptionExtraction(createEmptyPrescriptionExtraction())
   }
 
   const saveFamilyMember = (event) => {
@@ -958,6 +978,7 @@ function App() {
     })
     setPrescriptionDraftImage(null)
     setPrescriptionOcr({ status: 'idle', text: '', message: '' })
+    setPrescriptionExtraction(createEmptyPrescriptionExtraction())
     if (user?.uid) {
       const image = await getPrescriptionImage(user.uid, prescription.id).catch(() => null)
       if (image) setPrescriptionDraftImage(image)
@@ -1033,6 +1054,7 @@ function App() {
   const setPrescriptionDraft = async (image) => {
     if (!image) return
     setPrescriptionDraftImage(image)
+    setPrescriptionExtraction(createEmptyPrescriptionExtraction())
     setPrescriptionOcr({ status: 'processing', text: '', message: 'Reading the image on this device with Google ML Kit...' })
     try {
       const result = await recognizePrescriptionText(image, prescriptionOcrScript)
@@ -1081,6 +1103,54 @@ function App() {
     if (!prescriptionOcr.text) return
     setPrescriptionForm((current) => ({ ...current, notes: prescriptionOcr.text }))
     setPrescriptionOcr((current) => ({ ...current, message: 'OCR draft copied to Instructions. Review every field before saving.' }))
+  }
+
+  const extractPrescriptionMedicines = async () => {
+    if (prescriptionExtractBusy || !prescriptionOcr.text) return
+    if (!isCloudEnabled() || !user) {
+      setPrescriptionExtraction({ ...createEmptyPrescriptionExtraction(), status: 'error', message: 'Connect the cloud backend and sign in before extracting medicine drafts.' })
+      return
+    }
+
+    setPrescriptionExtractBusy(true)
+    setPrescriptionExtraction({ ...createEmptyPrescriptionExtraction(), status: 'processing', message: 'Extracting medicine drafts securely…' })
+    try {
+      const session = await ensureCloudSession(user, { attestationToken })
+      const result = await cloudApi.ai.extract(session.token, prescriptionOcr.text)
+      const medicines = Array.isArray(result?.medicines)
+        ? result.medicines.map(normalizePrescriptionExtractionDraft).filter((draft) => draft.name.length >= 2)
+        : []
+      setPrescriptionExtraction({
+        status: 'ready',
+        medicines,
+        source: result?.source || 'fallback',
+        disclaimer: result?.disclaimer || '',
+        message: medicines.length ? `${medicines.length} medicine draft${medicines.length === 1 ? '' : 's'} found. Review every field before continuing.` : 'No medicine drafts were found. Review the OCR text and enter the medicine manually.',
+      })
+    } catch (error) {
+      setPrescriptionExtraction({ ...createEmptyPrescriptionExtraction(), status: 'error', message: error?.status === 429 ? 'The MedLoop AI limit has been reached. Try again later.' : error?.message || 'Unable to extract medicine drafts securely.' })
+    } finally {
+      setPrescriptionExtractBusy(false)
+    }
+  }
+
+  const updatePrescriptionExtractionDraft = (index, changes) => {
+    setPrescriptionExtraction((current) => ({
+      ...current,
+      medicines: current.medicines.map((draft, draftIndex) => draftIndex === index ? { ...draft, ...changes } : draft),
+    }))
+  }
+
+  const reviewPrescriptionMedicineDraft = (draft) => {
+    const enabledDosePeriods = draft.enabledPeriods.length ? draft.enabledPeriods : ['morning']
+    setMedicineForm({
+      ...emptyMedicineForm,
+      name: draft.name,
+      dosage: draft.dosage,
+      enabledDosePeriods,
+    })
+    setFormFeedback((current) => ({ ...current, medicine: 'Draft loaded from the prescription. Review the schedule and stock details before saving.' }))
+    navigateTo('medicines')
   }
 
   const uploadPrescriptionImageFile = async (prescriptionId, event) => {
@@ -1593,6 +1663,11 @@ function App() {
             prescriptionOcrScript={prescriptionOcrScript}
             setPrescriptionOcrScript={setPrescriptionOcrScript}
             prescriptionOcr={prescriptionOcr}
+            prescriptionExtraction={prescriptionExtraction}
+            prescriptionExtractBusy={prescriptionExtractBusy}
+            extractPrescriptionMedicines={extractPrescriptionMedicines}
+            updatePrescriptionExtractionDraft={updatePrescriptionExtractionDraft}
+            reviewPrescriptionMedicineDraft={reviewPrescriptionMedicineDraft}
             prescriptionPhotoFeedback={prescriptionPhotoFeedback}
             prescriptionPhotoBusyId={prescriptionPhotoBusyId}
             capturePrescriptionImage={capturePrescriptionImage}

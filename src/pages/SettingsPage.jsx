@@ -4,6 +4,48 @@ import { BellRing, CloudDownload, Download, FileText, HardDrive, MailCheck, Shie
 import { defaultSettings, sanitizeSettings, validateSettingsForm } from '../lib/settings'
 import { isCloudEnabled } from '../lib/cloud/config'
 import { createLinkCode, ensureCloudSession, redeemLinkCode } from '../lib/cloud/session'
+import { cloudApi } from '../lib/cloud/apiClient.js'
+
+function CloudConfigCheckPanel({ user }) {
+  const [busy, setBusy] = useState(false)
+  const [result, setResult] = useState(null)
+  const [error, setError] = useState('')
+
+  if (!isCloudEnabled() || !user) return null
+
+  const checkConfiguration = async () => {
+    setBusy(true)
+    setError('')
+    try {
+      const session = await ensureCloudSession(user)
+      setResult(await cloudApi.system.configCheck(session.token))
+    } catch (cause) {
+      setResult(null)
+      setError(cause?.message || 'Unable to check cloud service configuration.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const statuses = result ? [
+    ['Push notifications', result.channels?.push],
+    ['Email delivery', result.channels?.email],
+    ['WhatsApp delivery', result.channels?.whatsapp],
+    ['MedLoop AI', result.ai?.configured],
+    ['Request attestation', result.attestation?.enabled],
+    ['Secure file storage', result.storage?.r2],
+  ] : []
+
+  return (
+    <section className="panel-card">
+      <div className="section-header"><div><p className="section-kicker">Diagnostics</p><h2>Cloud service status</h2></div><ShieldCheck size={20} /></div>
+      <p>Check which production channels are connected. This diagnostic returns status flags only and never exposes secret values.</p>
+      <button className="secondary-btn" disabled={busy} onClick={checkConfiguration} type="button">{busy ? 'Checking…' : 'Check cloud configuration'}</button>
+      {result ? <div className="settings-list cloud-config-status" aria-label="Cloud service configuration status">{statuses.map(([label, enabled]) => <div className="settings-row" key={label}><span className="settings-icon"><ShieldCheck size={18} /></span><strong>{label}</strong><span className={`status-badge ${enabled ? 'success' : 'warning'}`}>{enabled ? 'Connected' : 'Not configured'}</span></div>)}</div> : null}
+      {error ? <p className="error-text" role="alert">{error}</p> : null}
+    </section>
+  )
+}
 
 // Pairing a second device. Self-contained because it talks to the cloud
 // session directly and has no bearing on the local-first settings around it;
@@ -314,6 +356,7 @@ function SettingsPage({
       </section>
 
       <DevicePairingPanel user={user} />
+      <CloudConfigCheckPanel user={user} />
 
       <section className="panel-card">
         <div className="section-header"><div><p className="section-kicker">Privacy and safety</p><h2>Legal information</h2></div><ShieldCheck size={20} /></div>

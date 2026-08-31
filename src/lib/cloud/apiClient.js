@@ -51,6 +51,9 @@ export const cloudApi = {
   // Server identity (Module A)
   health: () => request('/health'),
   meta: () => request('/meta'),
+  system: {
+    configCheck: (token) => request('/system/config-check', { token }),
+  },
   auth: {
     signup: (payload) => request('/auth/signup', { method: 'POST', body: payload }),
     login: (payload) => request('/auth/login', { method: 'POST', body: payload }),
@@ -127,6 +130,7 @@ export const cloudApi = {
   ai: {
     assistant: (token, question, context = '') => request('/ai/assistant', { method: 'POST', token, body: { question, context } }),
     simplify: (token, text) => request('/ai/simplify', { method: 'POST', token, body: { text } }),
+    extract: (token, text) => request('/ai/extract', { method: 'POST', token, body: { text } }),
   },
   settings: {
     get: (token) => request('/settings', { token }),

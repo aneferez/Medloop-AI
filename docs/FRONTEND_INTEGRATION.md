@@ -15,8 +15,10 @@ Cloudflare Worker contract in `docs/BACKEND_PRD.md` (§6 and §10).
 - Settings sync now includes timezone, dose grace, L2 escalation timing,
   escalation enablement, and consent metadata.
 - The assistant calls `/ai/assistant` and the prescription helper calls
-  `/ai/simplify`; the backend response disclaimer is rendered verbatim and
-  refusal/rate-limit states are handled.
+  `/ai/simplify`; prescription OCR text can also be sent to `/ai/extract` for
+  structured medicine drafts. The backend response disclaimer is rendered
+  verbatim and refusal/rate-limit states are handled. Extracted medicines stay
+  editable drafts until the user reviews them in the normal Medicines form.
 - Family caregiver invites, acceptance, permission editing, revocation, and
   permission-scoped patient inventory/dose/adherence views are available on
   the Family screen.
@@ -24,6 +26,8 @@ Cloudflare Worker contract in `docs/BACKEND_PRD.md` (§6 and §10).
   30-day adherence insights.
 - Account export and password-confirmed cloud deletion are available in
   Settings.
+- Settings includes an authenticated cloud configuration diagnostic that shows
+  channel status booleans only; it never returns or displays secret values.
 - Push handling uses only an opaque `data.alertId`, then fetches alert details
   from the authenticated API. Medicine details are not read from push payloads
   or logged.
@@ -56,7 +60,7 @@ must not be tested with a production patient’s password.
 The production web build is deployed to
 `https://medloop-app.pages.dev`; direct navigation to `/`, `/family`, and
 `/prescriptions` return the SPA shell successfully. The immutable deployment
-URL for this release is `https://dd91a817.medloop-app.pages.dev`.
+URL for this release is `https://516008af.medloop-app.pages.dev`.
 
 ## Required environment and release checks
 
@@ -66,8 +70,9 @@ URL for this release is `https://dd91a817.medloop-app.pages.dev`.
   `VITE_TURNSTILE_SITE_KEY` in the web build and keep `TURNSTILE_SECRET` only in
   Worker secrets.
 - Email verification/reset delivery needs `RESEND_API_KEY` and `EMAIL_FROM`.
-- AI responses need `MEDLOOP_AI_API_KEY`; without it, the Worker returns a safe
-  fallback while keeping the guardrails active.
+- AI runs through the Worker's configured `[ai]` binding by default; no external
+  key is required. `MEDLOOP_AI_API_KEY` is optional and only enables the
+  configured external fallback path.
 - FCM delivery needs the existing FCM Worker secrets. Pushes remain generic.
 - Android killed-app push processing and exact alarm delivery still need testing
   on physical devices under reboot and battery-restriction conditions.
