@@ -21,6 +21,14 @@ the operator sets secrets, instead of guessing. (Heads-up: the deployed FCM secr
 were **misnamed**, so `push` reads false until they're re-set — see
 `docs/SECURITY_RUNBOOK.md`.)
 
+## 🆕 Prescription extraction (feature #1, backend half)
+`POST /v1/ai/extract` `{ text }` → `{ medicines: [{ name, dosage, frequencyText, enabledPeriods }], source, disclaimer }`.
+Feed it the ML-Kit OCR text; it returns structured medicine **drafts** — frequency
+is mapped to `morning`/`afternoon`/`night` (handles `1-0-1`, `BID`/`TDS`, "at night",
+etc.). Runs on Workers AI with a rule-based fallback. **Nothing is auto-saved** —
+show the drafts for the user to review/edit, then create via the normal medicine
+flow. Add `cloudApi.ai.extract(token, text)` to `apiClient.js`.
+
 ## Notes
 - `PUT /sync` now round-trips escalation windows (`doseGraceMinutes`,
   `l2EscalationMinutes`, `escalationEnabled`, `timezone`) and consent

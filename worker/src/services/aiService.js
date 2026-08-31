@@ -9,6 +9,7 @@
 
 import { newId, nowIso } from '../lib/ids.js'
 import { AI_DISCLAIMER, REFUSAL_TEXT, isUnsafeRequest, outputIsUnsafe } from '../domain/aiSafety.js'
+import { normalizeExtractedMedicine, parseModelJson, ruleBasedExtract } from '../domain/prescriptionExtract.js'
 
 const DEFAULT_RATE_LIMIT_MAX = 20        // requests per user...
 const RATE_LIMIT_WINDOW_MINUTES = 60     // ...per hour
@@ -26,6 +27,19 @@ const SIMPLIFY_SYSTEM = `${MEDLOOP_PERSONA}\nTask: rewrite the medicine informat
 const ASSISTANT_SYSTEM = `${MEDLOOP_PERSONA}
 Task: answer the user's question about using MedLoop or understanding a medicine in general, within the rules above.
 Output rules: do NOT state specific dose amounts or numbers (e.g. "500 mg", "two tablets") — if dosing comes up, say "take the dose your doctor prescribed". Do NOT tell the person they have a condition (avoid "you have ..."). Explain the purpose and general facts only, in 2-3 short sentences.`
+
+// Extraction uses a focused parser prompt (NOT the assistant persona) so the
+// model reports the dose printed on the prescription rather than withholding it.
+const EXTRACT_SYSTEM = 'You are a careful medical-text parser for the MedLoop app. '
+  + 'Extract the prescribed medicines from the text, which came from a photo of a prescription and may contain OCR errors. '
+  + 'Do not invent medicines that are not clearly present, and do not give any medical advice. '
+  + 'Output ONLY a JSON array, with no commentary or code fences. '
+  + 'Each item: {"name": string, "dosage": string, "frequency": string}. '
+  + '"dosage" is the strength printed (e.g. "500 mg"); "frequency" is how often/when (e.g. "twice daily", "1-0-1", "at night"). '
+  + 'If no medicine is found, output [].'
+
+const EXTRACT_DISCLAIMER = 'This is an automated draft read from the prescription image. '
+  + 'Check every medicine, dose, and timing carefully before saving.'
 
 // Default open model on Workers AI: Llama 3.2 3B — small, fast, multilingual
 // (Hindi/Tamil), and tuned for summarization, which fits MedLoop's "explain this
@@ -178,4 +192,37 @@ export async function aiAssistant(ctx, { question, context = '' }) {
   }
   await record(db, { userId, patientId, kind: 'assistant', status: 'ok' })
   return reply(output, { source })
+}
+
+// Parse OCR'd prescription text into structured medicine DRAFTS (feature #1).
+// The LLM extracts entities; deterministic rules map them onto MedLoop's schema;
+// a rule-based fallback covers the no-model case. Nothing is saved automatically
+// — the caller shows the drafts for the user to review and confirm.
+export async function extractMedicines(ctx, { text }) {
+  const { env, db } = ctx
+  const userId = ctx.auth.user?.id ?? null
+  const patientId = ctx.auth.patient.id
+  const now = new Date()
+
+  if (!(await withinRateLimit(env, db, userId, now))) {
+    await record(db, { userId, patientId, kind: 'extract', status: 'rate_limited' })
+    return { rateLimited: true }
+  }
+
+  let items = null
+  let source = 'fallback'
+  const modelText = await callModel(env, { system: EXTRACT_SYSTEM, user: String(text).slice(0, 4000) })
+  if (modelText) {
+    const parsed = parseModelJson(modelText)
+    const array = Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.medicines) ? parsed.medicines : null)
+    if (array) {
+      items = array
+      source = 'model'
+    }
+  }
+  if (!items) items = ruleBasedExtract(text)
+
+  const medicines = items.map(normalizeExtractedMedicine).filter(Boolean).slice(0, 30)
+  await record(db, { userId, patientId, kind: 'extract', status: 'ok' })
+  return { medicines, source, disclaimer: EXTRACT_DISCLAIMER }
 }

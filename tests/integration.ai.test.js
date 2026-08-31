@@ -42,6 +42,31 @@ describe('integration — MedLoop AI', () => {
     expect(res.data.disclaimer.toLowerCase()).toContain('educational')
   })
 
+  it('extracts structured medicines from OCR text (model path)', async () => {
+    const withAi = makeClient({ AI: { run: async () => ({ response: '[{"name":"Metformin","dosage":"500 mg","frequency":"1-0-1"},{"name":"Atorvastatin","dosage":"10 mg","frequency":"at night"}]' }) } })
+    const acct = (await withAi.call('POST', '/v1/auth/signup', { body: { email: `u_${rnd()}@example.com`, password: 'strong pass 8' } })).data
+    const res = await withAi.call('POST', '/v1/ai/extract', { token: acct.token, body: { text: 'Rx Metformin 500mg 1-0-1; Atorvastatin 10mg at night' } })
+    expect(res.status).toBe(200)
+    expect(res.data.source).toBe('model')
+    expect(res.data.medicines.map((m) => m.name)).toEqual(['Metformin', 'Atorvastatin'])
+    expect(res.data.medicines[0].enabledPeriods).toEqual(['morning', 'night'])
+    expect(res.data.medicines[1].enabledPeriods).toEqual(['night'])
+    expect(res.data.disclaimer.toLowerCase()).toContain('check')
+  })
+
+  it('falls back to rule-based extraction with no model', async () => {
+    const noAi = makeClient()
+    const acct = (await noAi.call('POST', '/v1/auth/signup', { body: { email: `u_${rnd()}@example.com`, password: 'strong pass 8' } })).data
+    const res = await noAi.call('POST', '/v1/ai/extract', { token: acct.token, body: { text: 'Paracetamol 500 mg twice daily' } })
+    expect(res.status).toBe(200)
+    expect(res.data.source).toBe('fallback')
+    expect(res.data.medicines.some((m) => /paracetamol/i.test(m.name))).toBe(true)
+  })
+
+  it('requires auth for extract', async () => {
+    expect((await client.call('POST', '/v1/ai/extract', { body: { text: 'x' } })).status).toBe(401)
+  })
+
   it('refuses a dosing / diagnosis question to the assistant', async () => {
     const acct = await signup()
     const res = await client.call('POST', '/v1/ai/assistant', {

@@ -1,7 +1,7 @@
 import { ok, readJsonBody } from '../lib/http.js'
 import { tooManyRequests } from '../lib/errors.js'
 import { Validator } from '../lib/validate.js'
-import { aiAssistant, aiSimplify } from '../services/aiService.js'
+import { aiAssistant, aiSimplify, extractMedicines } from '../services/aiService.js'
 
 // MedLoop AI endpoints (feature #8) — authenticated + rate-limited, with the
 // safety guardrails enforced inside the service (tasks #32-35).
@@ -25,6 +25,18 @@ export function registerAiRoutes(router) {
     const input = v.ensureValid()
 
     const result = await aiAssistant(ctx, { question: input.question, context: input.context })
+    if (result.rateLimited) throw tooManyRequests('You have reached the AI usage limit for now. Please try again later.')
+    return ok(result)
+  })
+
+  // Parse OCR'd prescription text into structured medicine drafts (feature #1).
+  router.post('/ai/extract', async (ctx) => {
+    const body = await readJsonBody(ctx.request)
+    const v = new Validator(body)
+    v.string('text', { required: true, min: 1, max: 4000 })
+    const input = v.ensureValid()
+
+    const result = await extractMedicines(ctx, { text: input.text })
     if (result.rateLimited) throw tooManyRequests('You have reached the AI usage limit for now. Please try again later.')
     return ok(result)
   })
