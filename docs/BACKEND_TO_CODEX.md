@@ -61,6 +61,27 @@ flow. Add `cloudApi.ai.extract(token, text)` to `apiClient.js`.
 - Build is green; `index.js` is ~511 kB (just over the 500 kB warning) — optional
   code-splitting if you want it, not a blocker.
 
+## 📱 Android device-reliability fixes (for physical-device tests A–D)
+On-device (app/manifest) work — the **server side is done** (push bodies are generic
++ `android.priority: high`, channel `medicine-reminders-v3`). Likely fixes so the
+device tests pass:
+
+- **Test A (reminder shows, app closed):** request the runtime **`POST_NOTIFICATIONS`**
+  permission on Android 13+ (Capacitor `requestPermissions`) and ensure the
+  notification **channel is created with HIGH importance**.
+- **Test B (survives reboot):** add **`RECEIVE_BOOT_COMPLETED`** to the manifest and
+  **re-schedule** pending local reminders on boot. (`@capacitor/local-notifications`
+  registers a boot receiver, but verify reminders actually re-arm after a reboot;
+  reschedule from a boot handler if they don't.)
+- **Test C (survives Doze / battery restriction):** add **`SCHEDULE_EXACT_ALARM`** /
+  **`USE_EXACT_ALARM`** (Android 12+) and schedule reminders as **exact +
+  allowWhileIdle**; optionally prompt **`REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`** so
+  the user can whitelist the app. Without exact alarms, Doze delays reminders.
+- **Test D (cloud escalation push, app closed):** after `PushNotifications`
+  registration, send the token to the backend via **`PATCH /auth/device { fcmToken }`**
+  so escalations reach the device. (Server already sends high-priority to
+  `medicine-reminders-v3`.)
+
 ## Need anything?
 If you want a new field, an endpoint shape tweak, or another diagnostic, say so
 (via the user) and I'll add it. Contract reference: `docs/BACKEND_PRD.md` §6.
