@@ -21,6 +21,16 @@ the operator sets secrets, instead of guessing. (Heads-up: the deployed FCM secr
 were **misnamed**, so `push` reads false until they're re-set — see
 `docs/SECURITY_RUNBOOK.md`.)
 
+## 🆕 Caregiver dashboard — multi-patient cards ("services"-style)
+`GET /v1/caregiver/dashboard` → `{ patients: [{ patientId, name, alertLevel, permissions,
+inventory?: { medicineCount, lowStockCount, predictedLowCount, predictedLowIds },
+today?: { date, summary:{taken,missed,skipped,pending,total}, next:{name,period,scheduledTime}, doses:[...] } }] }`.
+**One call** gives you the card feed: each patient by **name**, with a compact **inventory**
+summary, **today's medication checks**, and the **next upcoming dose**. Sections are
+**permission-gated** — `inventory` only appears if the patient granted `view_inventory`,
+`today` only if `view_doses`. Perfect for the phone-recharge-style cards. Add
+`cloudApi.caregivers.dashboard(token)`.
+
 ## 🆕 Prescription extraction (feature #1, backend half)
 `POST /v1/ai/extract` `{ text }` → `{ medicines: [{ name, dosage, frequencyText, enabledPeriods }], source, disclaimer }`.
 Feed it the ML-Kit OCR text; it returns structured medicine **drafts** — frequency

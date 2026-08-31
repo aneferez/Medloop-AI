@@ -122,4 +122,36 @@ describe('integration — family network', () => {
       .bind(patient.patientId).all()
     expect(results.map((r) => r.recipient_id)).toContain(member.id)
   })
+
+  it('caregiver dashboard returns a card per patient (name + inventory + today)', async () => {
+    const patient = await signup({ displayName: 'Grandma' })
+    const caregiver = await signup()
+    const member = await addMember(patient.token, { name: 'Asha', alertLevel: 'Level 1' })
+    const inv = await invite(patient.token, member.id)
+    await client.call('POST', '/v1/caregiver/accept', { token: caregiver.token, body: { code: inv.inviteCode } })
+    await addMedicine(patient.token, { name: 'Metformin', enabledPeriods: ['morning', 'night'], morningTime: '08:00', nightTime: '20:00', stockRemaining: 2, stockBufferDays: 7 })
+
+    const res = await client.call('GET', '/v1/caregiver/dashboard', { token: caregiver.token })
+    expect(res.status).toBe(200)
+    const card = res.data.patients.find((p) => p.patientId === patient.patientId)
+    expect(card).toBeTruthy()
+    expect(card.name).toBe('Grandma')
+    expect(card.inventory.medicineCount).toBe(1)
+    expect(card.today.summary.total).toBe(2) // morning + night
+    expect(card.today.next).toBeTruthy()
+    expect(card.today.next.scheduledTime).toBeTruthy()
+  })
+
+  it('dashboard omits sections the patient did not grant', async () => {
+    const patient = await signup({ displayName: 'Grandpa' })
+    const caregiver = await signup()
+    const member = await addMember(patient.token, { name: 'Ben', alertLevel: 'Level 2' })
+    const inv = await invite(patient.token, member.id, { permissions: ['view_doses'] }) // no view_inventory
+    await client.call('POST', '/v1/caregiver/accept', { token: caregiver.token, body: { code: inv.inviteCode } })
+    await addMedicine(patient.token, { name: 'Aspirin', enabledPeriods: ['morning'], morningTime: '08:00', stockRemaining: 5 })
+
+    const card = (await client.call('GET', '/v1/caregiver/dashboard', { token: caregiver.token })).data.patients[0]
+    expect(card.today).toBeTruthy() // has view_doses
+    expect(card.inventory).toBeUndefined() // no view_inventory -> section absent
+  })
 })

@@ -7,13 +7,14 @@ import {
   CAREGIVER_PERMISSIONS,
   hasPermission,
   normalizePermissions,
+  parsePermissions,
   toPublicCaregiverLink,
 } from '../domain/caregiver.js'
 import { FAMILY_ALERT_LEVELS } from '../domain/family.js'
 import { normalizeMedicineRow } from '../domain/medicine.js'
 import { localDateParts } from '../domain/schedule.js'
 import { authorizePatientAccess } from '../services/caregiverAccess.js'
-import { patientAdherence, patientStockItems, summarizeStockItems } from '../services/stockInsight.js'
+import { patientAdherence, patientDoseSummary, patientStockItems, summarizeStockItems } from '../services/stockInsight.js'
 
 const patientSummary = (row) => (row ? { id: row.id, displayName: row.display_name } : null)
 
@@ -107,6 +108,47 @@ export function registerCaregiverRoutes(router) {
     }
     alerts.sort((a, b) => (a.predictedDaysRemaining ?? Number.MAX_SAFE_INTEGER) - (b.predictedDaysRemaining ?? Number.MAX_SAFE_INTEGER))
     return ok({ patients, alerts })
+  })
+
+  // Caregiver dashboard — one card per patient the caregiver can see, each with
+  // the patient's name, a compact inventory summary, today's medication checks,
+  // and the next upcoming dose. Everything is permission-gated per patient, so a
+  // card only carries the sections the patient granted access to.
+  router.get('/caregiver/dashboard', async (ctx) => {
+    const user = ctx.auth.user
+    if (!user) return ok({ patients: [] })
+    const links = await ctx.db.all(
+      "SELECT * FROM caregiver_links WHERE caregiver_user_id = ? AND status = 'active' ORDER BY accepted_at DESC",
+      [user.id],
+    )
+
+    const patients = []
+    for (const link of links) {
+      const patient = await ctx.db.first('SELECT id, display_name FROM patients WHERE id = ?', [link.patient_id])
+      if (!patient) continue
+
+      const card = {
+        patientId: patient.id,
+        name: patient.display_name || '',
+        alertLevel: link.alert_level,
+        permissions: parsePermissions(link.permissions),
+      }
+      if (hasPermission(link, 'view_inventory')) {
+        const items = await patientStockItems(ctx.db, patient.id)
+        const summary = summarizeStockItems(items)
+        card.inventory = {
+          medicineCount: items.length,
+          lowStockCount: summary.lowStockCount,
+          predictedLowCount: summary.predictedLowCount,
+          predictedLowIds: summary.predictedLowIds,
+        }
+      }
+      if (hasPermission(link, 'view_doses')) {
+        card.today = await patientDoseSummary(ctx.db, patient.id)
+      }
+      patients.push(card)
+    }
+    return ok({ patients })
   })
 
   // Patient-side: list caregivers with access (pending or active).
