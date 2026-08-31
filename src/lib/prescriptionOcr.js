@@ -17,12 +17,28 @@ function imageExtension(type) {
   return 'jpg'
 }
 
+export const OCR_SCRIPTS = [
+  { value: 'LATIN', label: 'English / Latin' },
+  { value: 'DEVANAGARI', label: 'Hindi / Devanagari' },
+]
+
+const ML_KIT_SCRIPT_KEYS = {
+  LATIN: 'Latin',
+  DEVANAGARI: 'Devanagari',
+}
+
+export function resolveOcrScript(Script, value) {
+  const requested = String(value || 'LATIN').toUpperCase()
+  const scriptKey = ML_KIT_SCRIPT_KEYS[requested] || ML_KIT_SCRIPT_KEYS.LATIN
+  return Script?.[scriptKey] || Script?.Latin || 'LATIN'
+}
+
 /**
  * Recognize prescription text on-device with Google ML Kit. The native plugin
  * is deliberately loaded only when running inside Capacitor so the browser
  * never needs a Google credential or sends the image to a hosted service.
  */
-export async function recognizePrescriptionText(image) {
+export async function recognizePrescriptionText(image, script = 'LATIN') {
   if (!image) throw new Error('Add a prescription image before starting OCR.')
   if (!Capacitor.isNativePlatform()) {
     return { status: 'unavailable', text: '', message: 'On-device OCR is available in the Android app. Review the image and enter the written details manually on web.' }
@@ -39,7 +55,7 @@ export async function recognizePrescriptionText(image) {
     })
     uri = saved.uri || fileName
     const { Script, TextRecognition } = await import('@capacitor-mlkit/text-recognition')
-    const result = await TextRecognition.processImage({ path: uri, script: Script.Latin })
+    const result = await TextRecognition.processImage({ path: uri, script: resolveOcrScript(Script, script) })
     const text = String(result?.text || '').trim()
     return text
       ? { status: 'ready', text, message: 'OCR draft ready. Review it carefully before saving.' }

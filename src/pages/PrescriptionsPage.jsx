@@ -1,6 +1,7 @@
 import { Camera, FileImage, FileText, ImageUp, Sparkles, X } from 'lucide-react'
 import GuidedFormAssistant from '../components/GuidedFormAssistant'
 import RecordActions from '../components/RecordActions'
+import { OCR_SCRIPTS } from '../lib/prescriptionOcr'
 
 function PrescriptionsPage({
   prescriptions,
@@ -14,6 +15,8 @@ function PrescriptionsPage({
   prescriptionImageUrls,
   prescriptionDraftImageUrl,
   prescriptionDraftBusy,
+  prescriptionOcrScript,
+  setPrescriptionOcrScript,
   prescriptionOcr,
   prescriptionPhotoFeedback,
   prescriptionPhotoBusyId,
@@ -47,6 +50,7 @@ function PrescriptionsPage({
             <div className="prescription-image-capture-heading"><div><p className="section-kicker">Required attachment</p><h3 id="prescription-image-title">Prescription image</h3></div><span className="status-badge warning">Required</span></div>
             {prescriptionDraftImageUrl ? <div className="prescription-draft-preview"><img alt="Prescription image preview" src={prescriptionDraftImageUrl} /><div><strong>Image ready for review</strong><p>Replace it if the text is blurry or cut off.</p></div></div> : <div className="prescription-draft-empty"><FileImage size={24} /><div><strong>Add the original prescription</strong><p>Use a clear JPG, PNG, or WebP image up to 10 MB.</p></div></div>}
             <div className="prescription-capture-actions"><button className="secondary-btn small" disabled={prescriptionDraftBusy} onClick={capturePrescriptionDraft} type="button"><Camera size={15} /> {prescriptionDraftBusy ? 'Reading...' : 'Camera'}</button><button className="secondary-btn small" disabled={prescriptionDraftBusy} onClick={uploadPrescriptionDraft} type="button"><ImageUp size={15} /> Gallery</button><label className="secondary-btn small file-upload-btn"><ImageUp size={15} /> Choose file<input accept="image/jpeg,image/png,image/webp" aria-label="Choose prescription image file" disabled={prescriptionDraftBusy} hidden onChange={uploadPrescriptionDraftFile} type="file" /></label></div>
+            <label className="field ocr-script-field"><span>OCR language</span><select aria-label="OCR language" disabled={prescriptionDraftBusy} onChange={(event) => setPrescriptionOcrScript(event.target.value)} value={prescriptionOcrScript}>{OCR_SCRIPTS.map((script) => <option key={script.value} value={script.value}>{script.label}</option>)}</select><small>Hindi uses Devanagari. Tamil is not included in Google ML Kit Text Recognition; enter Tamil text manually.</small></label>
             {prescriptionOcr?.status === 'processing' ? <p className="helper-text ocr-status" role="status">{prescriptionOcr.message}</p> : null}
             {prescriptionOcr?.message && prescriptionOcr?.status !== 'processing' ? <p className={`helper-text ocr-status ${prescriptionOcr.status === 'failed' ? 'error-text' : ''}`} role="status">{prescriptionOcr.message}</p> : null}
             {prescriptionOcr?.text ? <div className="ocr-draft"><div><strong>OCR draft</strong><span>Review before saving</span></div><p>{prescriptionOcr.text}</p><button className="secondary-btn small" onClick={applyPrescriptionOcr} type="button">Use in instructions</button></div> : null}

@@ -29,7 +29,9 @@ Cloudflare Worker contract in `docs/BACKEND_PRD.md` (§6 and §10).
   or logged.
 - On-device ML Kit OCR, mandatory prescription-image validation, emergency-card
   selection, consent versioning, and the existing local-first sync remain in
-  place.
+  place. OCR supports selectable English/Latin and Hindi/Devanagari recognition
+  on Android; Tamil remains a manual-entry path because it is not supported by
+  the bundled ML Kit Text Recognition plugin.
 
 ## Production deployment status
 
@@ -52,9 +54,9 @@ The Family page was refreshed after deployment and no longer shows the prior
 must not be tested with a production patient’s password.
 
 The production web build is deployed to
-`https://medloop-app.pages.dev`; direct navigation to `/` and `/family` both
-return the SPA shell successfully. The immutable deployment URL for this
-release is `https://b5a3d95d.medloop-app.pages.dev`.
+`https://medloop-app.pages.dev`; direct navigation to `/`, `/family`, and
+`/prescriptions` return the SPA shell successfully. The immutable deployment
+URL for this release is `https://dd91a817.medloop-app.pages.dev`.
 
 ## Required environment and release checks
 

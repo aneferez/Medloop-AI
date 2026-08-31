@@ -347,6 +347,7 @@ function App() {
   const [prescriptionDraftImage, setPrescriptionDraftImage] = useState(null)
   const [prescriptionDraftImageUrl, setPrescriptionDraftImageUrl] = useState('')
   const [prescriptionDraftBusy, setPrescriptionDraftBusy] = useState(false)
+  const [prescriptionOcrScript, setPrescriptionOcrScript] = useState('LATIN')
   const [prescriptionOcr, setPrescriptionOcr] = useState({ status: 'idle', text: '', message: '' })
   const [simplifyBusy, setSimplifyBusy] = useState(false)
   const [currentDoseDate, setCurrentDoseDate] = useState(getLocalDateKey)
@@ -1034,7 +1035,7 @@ function App() {
     setPrescriptionDraftImage(image)
     setPrescriptionOcr({ status: 'processing', text: '', message: 'Reading the image on this device with Google ML Kit...' })
     try {
-      const result = await recognizePrescriptionText(image)
+      const result = await recognizePrescriptionText(image, prescriptionOcrScript)
       setPrescriptionOcr(result)
     } catch (error) {
       setPrescriptionOcr({ status: 'failed', text: '', message: error?.message || 'OCR could not read this image. Review it and enter the written details manually.' })
@@ -1589,6 +1590,8 @@ function App() {
             prescriptionImageUrls={prescriptionImageUrls}
             prescriptionDraftImageUrl={prescriptionDraftImageUrl}
             prescriptionDraftBusy={prescriptionDraftBusy}
+            prescriptionOcrScript={prescriptionOcrScript}
+            setPrescriptionOcrScript={setPrescriptionOcrScript}
             prescriptionOcr={prescriptionOcr}
             prescriptionPhotoFeedback={prescriptionPhotoFeedback}
             prescriptionPhotoBusyId={prescriptionPhotoBusyId}

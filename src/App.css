@@ -2149,7 +2149,7 @@ textarea:focus {
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 960px) {
   .app-shell {
     display: block;
   }
@@ -4259,7 +4259,7 @@ body {
   box-shadow: var(--shadow-lg);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 960px) {
   .topbar {
     gap: 10px;
   }
