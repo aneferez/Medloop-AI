@@ -4,6 +4,7 @@ import { Validator } from '../lib/validate.js'
 import { newId, nowIso } from '../lib/ids.js'
 import { normalizeMedicineRow, toPublicMedicine } from '../domain/medicine.js'
 import { summarizeStock } from '../domain/stock.js'
+import { patientAdherence, patientStockItems, summarizeStockItems } from '../services/stockInsight.js'
 import { DOSE_PERIODS, DOSE_STATUSES, PERIOD_TIME_COLUMN, stockDeltaForTransition, takenTimestamp } from '../domain/doses.js'
 
 // camelCase input -> D1 column for sparse PATCH updates.
@@ -63,16 +64,20 @@ const publicDoseLog = (row) => ({
 })
 
 export function registerMedicineRoutes(router) {
-  // Stock overview across all medicines (rows #8, #10, #11). Registered before
-  // any /medicines/:id route; different prefix, but kept explicit for clarity.
+  // Stock overview across all medicines (rows #8, #10, #11) with a predictive
+  // block per item driven by real consumption (feature #4). `predictedLow*`
+  // surfaces medicines projected to run out inside their buffer, ahead of the
+  // static low-stock threshold.
   router.get('/stock/summary', async (ctx) => {
-    const rows = await ctx.db.all('SELECT * FROM medicines WHERE patient_id = ?', [ctx.auth.patient.id])
-    const items = rows.map((row) => {
-      const medicine = normalizeMedicineRow(row)
-      return { id: row.id, name: row.name, ...summarizeStock(medicine) }
-    })
-    const low = items.filter((item) => item.low)
-    return ok({ items, lowStockCount: low.length, lowStockIds: low.map((item) => item.id) })
+    const items = await patientStockItems(ctx.db, ctx.auth.patient.id)
+    return ok(summarizeStockItems(items))
+  })
+
+  // Adherence report (#12) over the trailing ?range= days (default 30).
+  router.get('/adherence', async (ctx) => {
+    const range = Math.min(365, Math.max(1, Number(ctx.query.range) || 30))
+    const report = await patientAdherence(ctx.db, ctx.auth.patient.id, { rangeDays: range })
+    return ok(report)
   })
 
   router.get('/medicines', async (ctx) => {

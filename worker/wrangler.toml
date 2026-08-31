@@ -41,5 +41,6 @@ bucket_name = "medloop-files"
 [triggers]
 crons = [
   "30 16 * * *",  # ~22:00 Asia/Kolkata daily medicine check (row #13)
-  "30 3 20 * *"   # ~09:00 Asia/Kolkata monthly restock check on the 20th (row #12)
+  "30 3 20 * *",  # ~09:00 Asia/Kolkata monthly restock check on the 20th (row #12)
+  "*/15 * * * *"  # missed-dose escalation sweep, staggered L1->L2 (row #17 / feature #7)
 ]

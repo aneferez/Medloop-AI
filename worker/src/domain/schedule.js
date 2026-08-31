@@ -79,6 +79,23 @@ export function buildRestockAlert(needs) {
   }
 }
 
-// Cron schedules (UTC). Daily check ≈ 22:00 Asia/Kolkata; restock on the 20th.
+// Generic, PII-FREE push copy for the scheduled alerts (guardrail G3 / task #7):
+// medicine names live only in the in-app alert detail above, never in the push
+// body. The app fetches specifics over the authenticated channel via data.alertId.
+export const dailyCheckPush = () => ({
+  title: 'MedLoop daily check',
+  body: 'Some of today’s medicines still need attention. Open MedLoop for details.',
+})
+
+export const restockPush = () => ({
+  title: 'MedLoop restock reminder',
+  body: 'Some medicines are running low. Open MedLoop to arrange a refill.',
+})
+
+// Cron schedules (UTC). Daily check ≈ 22:00 Asia/Kolkata; restock on the 20th;
+// the escalation sweep runs every 15 minutes so a missed dose is escalated to
+// caregivers within the grace window (feature #7). It reasons in each patient's
+// local time zone, so a fixed UTC cadence is fine.
 export const DAILY_CRON = '30 16 * * *'
 export const RESTOCK_CRON = '30 3 20 * *'
+export const ESCALATION_CRON = '*/15 * * * *'

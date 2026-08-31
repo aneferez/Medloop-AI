@@ -23,5 +23,13 @@ WHATSAPP_ACCESS_TOKEN=
 RESEND_API_KEY=
 EMAIL_FROM=
 
+# MedLoop AI assistant (feature #8) — dedicated key for the MedLoop-exclusive
+# assistant. Without a key the /ai/* endpoints still enforce the safety
+# guardrails and return a safe fallback. MEDLOOP_AI_MODEL defaults to a current
+# hosted Claude model; AI_RATE_LIMIT_MAX overrides the per-user hourly limit.
+MEDLOOP_AI_API_KEY=
+# MEDLOOP_AI_MODEL=claude-sonnet-5
+# AI_RATE_LIMIT_MAX=20
+
 # R2 file storage (prescription images) is enabled by creating the bucket and
 # uncommenting [[r2_buckets]] in wrangler.toml — no secret required.
