@@ -2,7 +2,7 @@ import { ok, readJsonBody, readJsonBodyOptional } from '../lib/http.js'
 import { badRequest, conflict, forbidden, tooManyRequests, unauthorized } from '../lib/errors.js'
 import { Validator } from '../lib/validate.js'
 import { newId, nowIso, randomToken, sha256Hex } from '../lib/ids.js'
-import { hashPassword, verifyPassword } from '../lib/password.js'
+import { hashIterations, hashPassword, verifyPassword } from '../lib/password.js'
 import { sendPasswordResetEmail, sendVerificationEmail } from '../services/accountEmail.js'
 import { formatLinkCode, normalizeLinkCode, randomLinkCode } from '../lib/codes.js'
 import { enforceRateLimit } from '../lib/rateLimit.js'
@@ -133,7 +133,7 @@ export function registerAuthRoutes(router) {
     const existing = await ctx.db.first('SELECT id FROM users WHERE email = ?', [input.email])
     if (existing) throw conflict('An account with this email already exists. Try signing in instead.')
 
-    const pw = await hashPassword(input.password)
+    const pw = await hashPassword(input.password, undefined, hashIterations(ctx.env))
     const userId = newId()
     const patientId = newId()
     const deviceId = newId()
@@ -187,7 +187,7 @@ export function registerAuthRoutes(router) {
 
     const user = await ctx.db.first('SELECT * FROM users WHERE email = ?', [input.email])
     if (!user) {
-      await hashPassword(input.password) // equalize timing with a real verify
+      await hashPassword(input.password, undefined, hashIterations(ctx.env)) // equalize timing with a real verify
       throw unauthorized('The email or password is incorrect.')
     }
     if (user.status !== 'active' || !(await verifyPassword(input.password, user))) {
@@ -277,7 +277,7 @@ export function registerAuthRoutes(router) {
     const row = await consumeEmailToken(ctx.db, input.token, 'reset_password')
     if (!row) throw unauthorized('This reset link is invalid or has expired. Request a new one.')
 
-    const pw = await hashPassword(input.password)
+    const pw = await hashPassword(input.password, undefined, hashIterations(ctx.env))
     const now = nowIso()
     const patient = await ctx.db.first('SELECT id FROM patients WHERE owner_user_id = ?', [row.user_id])
     await ctx.db.batch([

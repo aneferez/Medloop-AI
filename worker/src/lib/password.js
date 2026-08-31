@@ -2,7 +2,11 @@
 // the Workers runtime and Node's test runtime). Mirrors the on-device hashing in
 // src/lib/localAccount.js so the credential story is consistent end to end.
 
-const DEFAULT_ITERATIONS = 210_000
+// Cloudflare Workers FREE plan caps CPU at 10 ms/request and PBKDF2 is pure CPU,
+// so browser-grade 210k iterations exceed the budget and the request is killed.
+// 10k fits comfortably while staying a salted, iterated KDF. Override with
+// PBKDF2_ITERATIONS; on the Workers PAID plan (30s CPU) set it back to 210000+.
+const DEFAULT_ITERATIONS = 10_000
 const KEY_BITS = 256
 
 function randomSaltB64() {
@@ -29,6 +33,14 @@ export async function hashPassword(password, saltB64 = randomSaltB64(), iteratio
     keyMaterial, KEY_BITS,
   )
   return { hash: bytesToHex(bits), salt: saltB64, algo: 'pbkdf2-sha256', iterations }
+}
+
+// Iteration count to hash NEW passwords with. Reads PBKDF2_ITERATIONS when set
+// (e.g. 210000 on the Workers Paid plan), else the free-tier-safe default.
+// Verification always uses each user's stored iteration count, so mixing is fine.
+export function hashIterations(env) {
+  const configured = Number(env && env.PBKDF2_ITERATIONS)
+  return Number.isFinite(configured) && configured >= 1000 ? Math.floor(configured) : DEFAULT_ITERATIONS
 }
 
 // Constant-time comparison so a timing side-channel cannot leak the stored hash.
