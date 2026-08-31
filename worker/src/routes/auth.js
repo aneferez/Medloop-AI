@@ -70,6 +70,12 @@ export function registerAuthRoutes(router) {
     v.string('deviceLabel', { max: 60, fallback: '' })
     const input = v.ensureValid()
 
+    // Attestation gates ALL account creation (task #4), not just /auth/signup —
+    // otherwise this device-token path is a bypass. No-op until TURNSTILE_SECRET.
+    if (isAttestationEnabled(ctx.env) && !(await verifyAttestation(ctx.env, ctx.request, body.attestationToken))) {
+      throw forbidden('We could not verify this request. Please try again.')
+    }
+
     const patientId = newId()
     const deviceId = newId()
     const token = randomToken()

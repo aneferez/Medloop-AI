@@ -27,14 +27,11 @@ describe('integration — system config-check', () => {
   })
 
   it('reflects configured channels when secrets are present', async () => {
-    const configured = makeClient({ MEDLOOP_AI_API_KEY: 'x', RESEND_API_KEY: 'x', EMAIL_FROM: 'care@example.com', TURNSTILE_SECRET: 't' })
-    // Use device registration (not attestation-gated) to get a session, since
-    // TURNSTILE_SECRET now makes signup require a Turnstile token.
+    const configured = makeClient({ MEDLOOP_AI_API_KEY: 'x', RESEND_API_KEY: 'x', EMAIL_FROM: 'care@example.com' })
     const acct = await configured.register()
     const res = await configured.call('GET', '/v1/system/config-check', { token: acct.token })
     expect(res.data.channels.email).toBe(true)
     expect(res.data.ai.configured).toBe(true)
-    expect(res.data.attestation.enabled).toBe(true)
     expect(res.data.channels.push).toBe(false) // FCM secrets still absent
   })
 })

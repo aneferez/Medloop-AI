@@ -18,6 +18,13 @@ describe('integration — hardening', () => {
     expect(limited.status).toBe(429)
   })
 
+  it('gates /auth/register behind attestation when Turnstile is enabled', async () => {
+    const client = makeClient({ TURNSTILE_SECRET: 't' })
+    // No attestation token -> blocked, the same gate /auth/signup enforces.
+    const res = await client.call('POST', '/v1/auth/register', { body: { email: `g_${rnd()}@example.com` } })
+    expect(res.status).toBe(403)
+  })
+
   it('exports the account data for the owner', async () => {
     const client = makeClient()
     const acct = (await client.call('POST', '/v1/auth/signup', {
