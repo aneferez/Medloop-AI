@@ -31,8 +31,10 @@ export function isUnsafeRequest(text) {
 }
 
 // Diagnoses / recommendations are never allowed in output, whatever the task.
+// The "you have" check excludes educational conditionals ("if/when you have …"),
+// which are explanations, not diagnoses.
 const RECOMMENDATION_PATTERNS = [
-  /\byou (have|likely have|probably have|are suffering from|might have)\b/i,
+  /(?<!\bif )(?<!\bwhen )\byou (have|likely have|probably have|are suffering from|might have)\b/i,
   /\b(stop|start) taking\b/i,
   /\bi (diagnose|recommend you (take|start|stop|change))\b/i,
   /\b(increase|decrease|double|reduce|raise|lower)\s+(your\s+)?(dose|dosage)\b/i,

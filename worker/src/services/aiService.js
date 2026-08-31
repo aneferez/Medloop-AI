@@ -23,7 +23,9 @@ const MEDLOOP_PERSONA =
   + 'Keep answers short, plain, and calm.'
 
 const SIMPLIFY_SYSTEM = `${MEDLOOP_PERSONA}\nTask: rewrite the medicine information the user provides in simple, plain language a non-expert can understand, under 120 words. Only restate what is given — do not add advice.`
-const ASSISTANT_SYSTEM = `${MEDLOOP_PERSONA}\nTask: answer the user's question about using MedLoop or understanding their medicines in general, within the rules above.`
+const ASSISTANT_SYSTEM = `${MEDLOOP_PERSONA}
+Task: answer the user's question about using MedLoop or understanding a medicine in general, within the rules above.
+Output rules: do NOT state specific dose amounts or numbers (e.g. "500 mg", "two tablets") — if dosing comes up, say "take the dose your doctor prescribed". Do NOT tell the person they have a condition (avoid "you have ..."). Explain the purpose and general facts only, in 2-3 short sentences.`
 
 // Default open model on Workers AI: Llama 3.2 3B — small, fast, multilingual
 // (Hindi/Tamil), and tuned for summarization, which fits MedLoop's "explain this

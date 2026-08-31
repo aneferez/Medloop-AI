@@ -40,6 +40,12 @@ describe('ai safety — output validation (#32)', () => {
   it('passes a plain explanation', () => {
     expect(outputIsUnsafe('Metformin helps manage blood sugar. Take it as your doctor prescribed.', 'assistant')).toBe(false)
   })
+
+  it('allows educational conditionals but still blocks a direct diagnosis', () => {
+    expect(outputIsUnsafe('If you have a headache, paracetamol can help reduce the pain.', 'assistant')).toBe(false)
+    expect(outputIsUnsafe('This is used when you have high blood pressure.', 'assistant')).toBe(false)
+    expect(outputIsUnsafe('You have diabetes and need this medicine.', 'assistant')).toBe(true)
+  })
 })
 
 describe('ai safety — constants', () => {
