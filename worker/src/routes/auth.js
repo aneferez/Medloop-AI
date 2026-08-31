@@ -70,6 +70,13 @@ export function registerAuthRoutes(router) {
     v.string('deviceLabel', { max: 60, fallback: '' })
     const input = v.ensureValid()
 
+    // Cap registrations per source (per IP in production; email/anon otherwise).
+    // Checked before the attestation fetch so a flood is rejected cheaply.
+    await enforceRateLimit(ctx.db, `register:${ctx.request.headers.get('CF-Connecting-IP') || input.email || 'anon'}`, {
+      max: Number(ctx.env.AUTH_REGISTER_MAX) || 15, windowMinutes: 60,
+      message: 'Too many registrations. Please try again later.',
+    })
+
     // Attestation gates ALL account creation (task #4), not just /auth/signup —
     // otherwise this device-token path is a bypass. No-op until TURNSTILE_SECRET.
     if (isAttestationEnabled(ctx.env) && !(await verifyAttestation(ctx.env, ctx.request, body.attestationToken))) {

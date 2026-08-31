@@ -18,6 +18,15 @@ describe('integration — hardening', () => {
     expect(limited.status).toBe(429)
   })
 
+  it('rate-limits repeated registrations from one source', async () => {
+    const client = makeClient({ AUTH_REGISTER_MAX: '3' })
+    const email = `reg_${rnd()}@example.com`
+    for (let i = 0; i < 3; i += 1) {
+      expect((await client.call('POST', '/v1/auth/register', { body: { email } })).status).toBe(201)
+    }
+    expect((await client.call('POST', '/v1/auth/register', { body: { email } })).status).toBe(429)
+  })
+
   it('gates /auth/register behind attestation when Turnstile is enabled', async () => {
     const client = makeClient({ TURNSTILE_SECRET: 't' })
     // No attestation token -> blocked, the same gate /auth/signup enforces.
