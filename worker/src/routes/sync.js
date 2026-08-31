@@ -217,6 +217,16 @@ async function upsertSettings(db, patientId, raw, now) {
   if (raw.pushEnabled != null) put('push_enabled', boolInt(raw.pushEnabled))
   if (raw.whatsappEnabled != null) put('whatsapp_enabled', boolInt(raw.whatsappEnabled))
   if (raw.emailEnabled != null) put('email_enabled', boolInt(raw.emailEnabled))
+  // Scheduled-job + escalation config (feature #7 / task #22).
+  if (raw.timezone != null) put('timezone', String(raw.timezone).slice(0, 64))
+  if (isTime(raw.dailyCheckTime)) put('daily_check_time', raw.dailyCheckTime)
+  if (Number.isInteger(raw.restockDay)) put('restock_day', Math.max(1, Math.min(28, raw.restockDay)))
+  if (Number.isInteger(raw.doseGraceMinutes)) put('dose_grace_minutes', Math.max(1, Math.min(240, raw.doseGraceMinutes)))
+  if (Number.isInteger(raw.l2EscalationMinutes)) put('l2_escalation_minutes', Math.max(2, Math.min(480, raw.l2EscalationMinutes)))
+  if (raw.escalationEnabled != null) put('escalation_enabled', boolInt(raw.escalationEnabled))
+  // Consent acknowledgement (task #29).
+  if (raw.consentVersion != null) put('consent_version', String(raw.consentVersion).slice(0, 40))
+  if (raw.consentAcceptedAt != null) put('consent_accepted_at', String(raw.consentAcceptedAt).slice(0, 40))
   if (!clauses.length) return
   clauses.push('updated_at = ?')
   params.push(now)
@@ -314,6 +324,14 @@ export function registerSyncRoutes(router) {
             pushEnabled: Boolean(settings.push_enabled),
             whatsappEnabled: Boolean(settings.whatsapp_enabled),
             emailEnabled: Boolean(settings.email_enabled),
+            timezone: settings.timezone,
+            dailyCheckTime: settings.daily_check_time,
+            restockDay: settings.restock_day,
+            doseGraceMinutes: settings.dose_grace_minutes,
+            l2EscalationMinutes: settings.l2_escalation_minutes,
+            escalationEnabled: Boolean(settings.escalation_enabled),
+            consentVersion: settings.consent_version ?? null,
+            consentAcceptedAt: settings.consent_accepted_at ?? null,
           }
         : null,
     })

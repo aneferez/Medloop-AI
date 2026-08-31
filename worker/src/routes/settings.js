@@ -16,6 +16,8 @@ const SETTINGS_COLUMNS = {
   doseGraceMinutes: 'dose_grace_minutes',
   l2EscalationMinutes: 'l2_escalation_minutes',
   escalationEnabled: 'escalation_enabled',
+  consentVersion: 'consent_version',
+  consentAcceptedAt: 'consent_accepted_at',
 }
 
 function toPublicSettings(row) {
@@ -33,6 +35,10 @@ function toPublicSettings(row) {
       enabled: Boolean(row.escalation_enabled),
       graceMinutes: row.dose_grace_minutes,       // scheduled -> Level 1
       l2Minutes: row.l2_escalation_minutes,       // scheduled -> Level 2
+    },
+    consent: {
+      version: row.consent_version ?? null,       // task #29
+      acceptedAt: row.consent_accepted_at ?? null,
     },
     updatedAt: row.updated_at,
   }
@@ -69,6 +75,8 @@ export function registerSettingsRoutes(router) {
     v.integer('doseGraceMinutes', { min: 1, max: 240 })
     v.integer('l2EscalationMinutes', { min: 2, max: 480 })
     v.boolean('escalationEnabled')
+    v.string('consentVersion', { max: 40 })
+    v.string('consentAcceptedAt', { max: 40 })
     const input = v.ensureValid()
 
     const sets = []
