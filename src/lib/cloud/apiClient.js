@@ -93,6 +93,7 @@ export const cloudApi = {
     list: (token) => request('/caregivers', { token }),
     accept: (token, code) => request('/caregiver/accept', { method: 'POST', token, body: { code } }),
     patients: (token) => request('/caregiver/patients', { token }),
+    dashboard: (token) => request('/caregiver/dashboard', { token }),
     inventory: (token) => request('/caregiver/inventory', { token }),
     update: (token, linkId, changes) => request(`/caregivers/${encodeURIComponent(linkId)}`, { method: 'PATCH', token, body: changes }),
     revoke: (token, linkId) => request(`/caregivers/${encodeURIComponent(linkId)}/revoke`, { method: 'POST', token }),

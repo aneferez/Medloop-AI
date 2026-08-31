@@ -47,4 +47,18 @@ describe('cloud API hand-off endpoints', () => {
       }),
     )
   })
+
+  it('loads the permission-scoped caregiver dashboard', async () => {
+    const { cloudApi } = await import('../src/lib/cloud/apiClient.js')
+
+    await cloudApi.caregivers.dashboard('session-token')
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://medloop-api.example.workers.dev/v1/caregiver/dashboard',
+      expect.objectContaining({
+        method: 'GET',
+        headers: { Accept: 'application/json', Authorization: 'Bearer session-token' },
+      }),
+    )
+  })
 })

@@ -22,6 +22,10 @@ Cloudflare Worker contract in `docs/BACKEND_PRD.md` (§6 and §10).
 - Family caregiver invites, acceptance, permission editing, revocation, and
   permission-scoped patient inventory/dose/adherence views are available on
   the Family screen.
+- Caregivers also receive a single `/caregiver/dashboard` card feed with one
+  permission-gated summary card per linked patient. Inventory and today’s dose
+  checks are rendered only when the patient granted those permissions; the
+  existing detailed view remains available for deeper review.
 - Reports calls `/stock/summary` and `/adherence` for predictive stock and
   30-day adherence insights.
 - Account export and password-confirmed cloud deletion are available in

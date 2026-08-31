@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Clipboard, Eye, HeartPulse, Link2, LockKeyhole, Package, ShieldCheck, UserCheck, UserPlus, Users, X } from 'lucide-react'
+import { Activity, AlertTriangle, CheckCircle2, Clipboard, Clock3, Eye, HeartPulse, Link2, LockKeyhole, Package, ShieldCheck, UserCheck, UserPlus, Users, X } from 'lucide-react'
 import { cloudApi } from '../lib/cloud/apiClient.js'
 import { isCloudEnabled } from '../lib/cloud/config.js'
 import { ensureCloudSession } from '../lib/cloud/session.js'
@@ -12,9 +12,78 @@ const PERMISSIONS = [
   ['view_emergency', 'Emergency card'],
 ]
 
+const permissionLabel = new Map(PERMISSIONS)
+
+const formatDoseTime = (value) => {
+  if (!value) return 'Time not set'
+  const [hour, minute] = String(value).split(':').map(Number)
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return value
+  const suffix = hour >= 12 ? 'PM' : 'AM'
+  const twelveHour = hour % 12 || 12
+  return `${twelveHour}:${String(minute).padStart(2, '0')} ${suffix}`
+}
+
+const formatDoseStatus = (status) => ({
+  taken: 'Taken',
+  missed: 'Missed',
+  skipped: 'Skipped',
+  pending: 'Pending',
+}[status] || 'Pending')
+
+function CaregiverPatientCard({ patient, onOpen }) {
+  const alertClass = patient.alertLevel === 'Level 1'
+    ? 'is-urgent'
+    : patient.alertLevel === 'Level 2' ? 'is-attention' : 'is-routine'
+  const permissions = Array.isArray(patient.permissions) ? patient.permissions : []
+  const today = patient.today
+  const summary = today?.summary || {}
+  const doses = Array.isArray(today?.doses) ? today.doses : []
+  const visibleDoses = doses.slice(0, 4)
+
+  return (
+    <article className="caregiver-patient-card">
+      <div className="caregiver-patient-card-header">
+        <div className="caregiver-patient-identity">
+          <span className="caregiver-patient-avatar" aria-hidden="true"><Activity size={17} /></span>
+          <div><p className="section-kicker">Shared care profile</p><h3>{patient.name || 'Patient'}</h3></div>
+        </div>
+        <span className={`caregiver-alert-badge ${alertClass}`}>{patient.alertLevel || 'Routine'}</span>
+      </div>
+
+      <div className="caregiver-permission-row" aria-label="Shared permissions">
+        <span className="caregiver-card-label">Shared</span>
+        {permissions.length ? permissions.map((permission) => <span className="caregiver-permission-chip" key={permission}>{permissionLabel.get(permission) || permission}</span>) : <span className="caregiver-card-muted">No active permissions</span>}
+      </div>
+
+      <section className="caregiver-card-section">
+        <div className="caregiver-card-section-heading"><Package size={16} /><strong>Inventory</strong>{patient.inventory && patient.inventory.lowStockCount > 0 ? <span className="caregiver-section-warning"><AlertTriangle size={13} /> {patient.inventory.lowStockCount} low</span> : null}</div>
+        {patient.inventory ? <div className="caregiver-metric-row"><div><strong>{patient.inventory.medicineCount ?? 0}</strong><span>medicines</span></div><div><strong>{patient.inventory.lowStockCount ?? 0}</strong><span>low stock</span></div><div><strong>{patient.inventory.predictedLowCount ?? 0}</strong><span>predicted low</span></div></div> : <p className="caregiver-card-muted">Inventory access was not shared.</p>}
+      </section>
+
+      <section className="caregiver-card-section">
+        <div className="caregiver-card-section-heading"><Clock3 size={16} /><strong>Today&apos;s medication checks</strong>{today ? <span className="caregiver-card-date">{today.date}</span> : null}</div>
+        {today ? <>
+          <div className="caregiver-dose-summary" aria-label="Today's dose summary">
+            <div className="is-taken"><strong>{summary.taken ?? 0}</strong><span>Taken</span></div>
+            <div className="is-pending"><strong>{summary.pending ?? 0}</strong><span>Pending</span></div>
+            <div className="is-missed"><strong>{summary.missed ?? 0}</strong><span>Missed</span></div>
+            <div className="is-skipped"><strong>{summary.skipped ?? 0}</strong><span>Skipped</span></div>
+            <div><strong>{summary.total ?? 0}</strong><span>Total</span></div>
+          </div>
+          <div className="caregiver-next-dose">{today.next ? <><span>Next dose</span><strong>{today.next.name}</strong><small>{today.next.period} · {formatDoseTime(today.next.scheduledTime)}</small></> : <><CheckCircle2 size={15} /><span>All scheduled doses checked</span></>}</div>
+          {visibleDoses.length ? <div className="caregiver-dose-list">{visibleDoses.map((dose) => <div className="caregiver-dose-row" key={`${dose.medicineId}-${dose.period}`}><div><strong>{dose.name}</strong><small>{dose.period} · {formatDoseTime(dose.scheduledTime)}</small></div><span className={`caregiver-dose-status is-${dose.status}`}><span aria-hidden="true" />{formatDoseStatus(dose.status)}</span></div>)}{doses.length > visibleDoses.length ? <small className="caregiver-card-muted">+ {doses.length - visibleDoses.length} more scheduled dose{doses.length - visibleDoses.length === 1 ? '' : 's'}</small> : null}</div> : null}
+        </> : <p className="caregiver-card-muted">Dose status was not shared.</p>}
+      </section>
+
+      <button className="secondary-btn small caregiver-open-detail" onClick={onOpen} type="button"><Eye size={14} /> Open detailed view</button>
+    </article>
+  )
+}
+
 function CaregiverNetworkPanel({ user, members = [], cloudSyncNow }) {
   const [links, setLinks] = useState([])
   const [patientLinks, setPatientLinks] = useState([])
+  const [dashboardPatients, setDashboardPatients] = useState([])
   const [selectedPatientId, setSelectedPatientId] = useState('')
   const [inventory, setInventory] = useState(null)
   const [doses, setDoses] = useState(null)
@@ -31,14 +100,21 @@ function CaregiverNetworkPanel({ user, members = [], cloudSyncNow }) {
     setError('')
     try {
       const session = await ensureCloudSession(user)
-      const [ownerResult, caregiverResult] = await Promise.all([
+      const [ownerResult, dashboardResult] = await Promise.all([
         cloudApi.caregivers.list(session.token),
-        cloudApi.caregivers.patients(session.token),
+        cloudApi.caregivers.dashboard(session.token),
       ])
       setLinks(ownerResult?.caregivers || [])
-      const nextPatients = caregiverResult?.patients || []
+      const nextDashboardPatients = dashboardResult?.patients || []
+      setDashboardPatients(nextDashboardPatients)
+      const nextPatients = nextDashboardPatients.map((patient) => ({
+        patientId: patient.patientId,
+        label: patient.name,
+        patient: { displayName: patient.name },
+        permissions: patient.permissions || [],
+      }))
       setPatientLinks(nextPatients)
-      setSelectedPatientId((current) => current || nextPatients[0]?.patientId || '')
+      setSelectedPatientId((current) => nextPatients.some((patient) => patient.patientId === current) ? current : nextPatients[0]?.patientId || '')
     } catch (cause) {
       setError(cause?.message || 'Unable to load the family network.')
     } finally {
@@ -147,6 +223,17 @@ function CaregiverNetworkPanel({ user, members = [], cloudSyncNow }) {
     <section className="panel-card caregiver-network-panel">
       <div className="section-header"><div><p className="section-kicker">Account-based care</p><h2>Caregiver network</h2></div><Users size={20} /></div>
       <p>Invite trusted people with their own MedLoop account. Access is read-only, consent-based, and limited to the permissions you choose.</p>
+
+      {dashboardPatients.length ? <section className="caregiver-dashboard-block" aria-labelledby="caregiver-dashboard-title">
+        <div className="caregiver-dashboard-heading">
+          <div><p className="section-kicker">One view for every patient</p><h3 id="caregiver-dashboard-title">Care dashboard</h3></div>
+          <span className="caregiver-dashboard-count">{dashboardPatients.length} patient{dashboardPatients.length === 1 ? '' : 's'}</span>
+        </div>
+        <p className="caregiver-dashboard-description">Shared signals are shown only when that patient has granted the matching permission.</p>
+        <div className="caregiver-dashboard-grid">
+          {dashboardPatients.map((patient) => <CaregiverPatientCard key={patient.patientId} onOpen={() => setSelectedPatientId(patient.patientId)} patient={patient} />)}
+        </div>
+      </section> : null}
 
       <div className="caregiver-network-grid">
         <section className="caregiver-network-block">

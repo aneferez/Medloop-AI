@@ -3496,6 +3496,68 @@ textarea:focus {
 .caregiver-network-block h3 { margin: 0; font-size: 1rem; color: var(--text); }
 .compact-list { gap: 8px; }
 .compact-list .list-item { padding: 12px; }
+.caregiver-dashboard-block {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--surface-tint), var(--surface-subtle));
+}
+.caregiver-dashboard-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.caregiver-dashboard-heading h3 { margin: 0; font-size: 1.2rem; color: var(--text); }
+.caregiver-dashboard-count { flex: none; padding: 6px 9px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--text-soft); font-size: .73rem; font-weight: 700; }
+.caregiver-dashboard-description { margin: 6px 0 14px; color: var(--muted); font-size: .82rem; line-height: 1.45; }
+.caregiver-dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(285px, 1fr)); gap: 12px; }
+.caregiver-patient-card { display: flex; min-width: 0; flex-direction: column; gap: 12px; padding: 16px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow-sm); }
+.caregiver-patient-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.caregiver-patient-identity { display: flex; min-width: 0; align-items: center; gap: 10px; }
+.caregiver-patient-identity > div { min-width: 0; }
+.caregiver-patient-identity h3 { overflow: hidden; margin: 2px 0 0; color: var(--text); font-size: 1.05rem; text-overflow: ellipsis; white-space: nowrap; }
+.caregiver-patient-avatar { display: grid; flex: none; width: 34px; height: 34px; place-items: center; border-radius: 11px; color: var(--primary); background: var(--surface-tint); }
+.caregiver-alert-badge { flex: none; padding: 5px 8px; border-radius: 999px; font-size: .68rem; font-weight: 800; }
+.caregiver-alert-badge.is-urgent { color: var(--coral); background: var(--coral-soft); }
+.caregiver-alert-badge.is-attention { color: var(--amber); background: var(--amber-soft); }
+.caregiver-alert-badge.is-routine { color: var(--toast-text); background: var(--surface-tint); }
+.caregiver-permission-row { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+.caregiver-card-label { margin-right: 2px; color: var(--muted); font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; }
+.caregiver-permission-chip { padding: 4px 7px; border-radius: 7px; color: var(--text-soft); background: var(--surface-subtle); font-size: .67rem; line-height: 1.1; }
+.caregiver-card-muted { margin: 0; color: var(--muted); font-size: .74rem; line-height: 1.4; }
+.caregiver-card-section { display: grid; gap: 10px; padding-top: 12px; border-top: 1px solid var(--border); }
+.caregiver-card-section-heading { display: flex; min-width: 0; align-items: center; gap: 7px; color: var(--primary); }
+.caregiver-card-section-heading strong { min-width: 0; overflow: hidden; color: var(--text); font-size: .78rem; text-overflow: ellipsis; white-space: nowrap; }
+.caregiver-section-warning { display: inline-flex; align-items: center; gap: 3px; margin-left: auto; color: var(--coral); font-size: .68rem; font-weight: 800; }
+.caregiver-card-date { margin-left: auto; color: var(--muted); font-size: .68rem; }
+.caregiver-metric-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.caregiver-metric-row div, .caregiver-dose-summary div { display: grid; gap: 2px; min-width: 0; padding: 8px; border-radius: 10px; background: var(--surface-subtle); }
+.caregiver-metric-row strong, .caregiver-dose-summary strong { color: var(--text); font-size: 1rem; line-height: 1; }
+.caregiver-metric-row span, .caregiver-dose-summary span { overflow: hidden; color: var(--muted); font-size: .64rem; text-overflow: ellipsis; white-space: nowrap; }
+.caregiver-dose-summary { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.caregiver-dose-summary .is-taken { color: var(--toast-text); background: var(--surface-tint); }
+.caregiver-dose-summary .is-pending { color: var(--amber); background: var(--amber-soft); }
+.caregiver-dose-summary .is-missed { color: var(--coral); background: var(--coral-soft); }
+.caregiver-dose-summary .is-skipped { color: var(--amber); background: var(--amber-soft); }
+.caregiver-dose-summary .is-taken strong, .caregiver-dose-summary .is-pending strong, .caregiver-dose-summary .is-missed strong { color: currentColor; }
+.caregiver-dose-summary .is-skipped strong { color: currentColor; }
+.caregiver-next-dose { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 6px; padding: 8px 10px; border-radius: 10px; color: var(--toast-text); background: var(--surface-tint); font-size: .7rem; }
+.caregiver-next-dose strong { overflow: hidden; color: var(--text); text-overflow: ellipsis; white-space: nowrap; }
+.caregiver-next-dose small { color: var(--muted); }
+.caregiver-next-dose > span:first-child { color: var(--muted); }
+.caregiver-dose-list { display: grid; gap: 5px; }
+.caregiver-dose-row { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+.caregiver-dose-row:last-of-type { border-bottom: 0; }
+.caregiver-dose-row > div { display: grid; min-width: 0; gap: 2px; }
+.caregiver-dose-row strong { overflow: hidden; color: var(--text); font-size: .74rem; text-overflow: ellipsis; white-space: nowrap; }
+.caregiver-dose-row small { color: var(--muted); font-size: .67rem; }
+.caregiver-dose-status { display: inline-flex; flex: none; align-items: center; gap: 5px; font-size: .67rem; font-weight: 800; }
+.caregiver-dose-status > span { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
+.caregiver-dose-status.is-taken { color: var(--toast-text); }
+.caregiver-dose-status.is-taken > span { background: var(--toast-text); }
+.caregiver-dose-status.is-missed { color: var(--coral); }
+.caregiver-dose-status.is-missed > span { background: var(--coral); }
+.caregiver-dose-status.is-skipped { color: var(--amber); }
+.caregiver-dose-status.is-skipped > span { background: var(--amber); }
+.caregiver-dose-status.is-pending { color: var(--muted); }
+.caregiver-open-detail { align-self: flex-start; margin-top: auto; }
 .caregiver-link-card { padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
 .caregiver-link-heading { display: flex; align-items: center; gap: 10px; }
 .caregiver-link-heading > div:nth-child(2) { flex: 1; min-width: 0; }
@@ -3517,7 +3579,18 @@ textarea:focus {
 @media (max-width: 760px) {
   .caregiver-network-grid { grid-template-columns: 1fr; }
   .caregiver-insight-grid { grid-template-columns: 1fr; }
+  .caregiver-dashboard-block { padding: 14px; }
   .field-action-row { align-items: flex-start; flex-direction: column; }
+}
+
+@media (max-width: 420px) {
+  .caregiver-dashboard-heading { display: grid; gap: 8px; }
+  .caregiver-dashboard-count { justify-self: start; }
+  .caregiver-patient-card { padding: 13px; }
+  .caregiver-patient-card-header { display: grid; }
+  .caregiver-alert-badge { justify-self: start; }
+  .caregiver-next-dose { grid-template-columns: auto minmax(0, 1fr); }
+  .caregiver-next-dose small { grid-column: 2; }
 }
 
 :root[data-theme="dark"] .ritual-shell {
