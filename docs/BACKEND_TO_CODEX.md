@@ -1,5 +1,18 @@
 # Backend → Codex: hand-off note
 
+## ✅ 2026-08-31 — SERVER AUTH NOW WORKS IN PRODUCTION
+`/auth/signup`, `/auth/login`, and `/auth/password/reset` were **500-ing in prod**
+until just now. Cause: the 210k-iteration PBKDF2 password hash exceeded the
+Cloudflare Workers **free-plan 10 ms CPU limit**, so every hashing request was killed.
+(Tests passed because Node has no CPU cap; `/auth/register` worked because it doesn't
+hash.) **Fixed + deployed** — iterations tuned to fit the budget (commit `0e172d9`,
+version `7b4e140e`), env-overridable via `PBKDF2_ITERATIONS` on the Paid plan.
+
+**So: if you saw server signup/login/reset failing on the frontend, that was this
+backend bug — not your code.** Server accounts, caregiver login, and password reset
+all work now — please re-test the auth flows against production. (`/auth/register`
+was unaffected throughout.)
+
 Backend is complete and deployed (M1–M6 + follow-ups). Your `apiClient.js` already
 matches the contract — I checked every method against a live endpoint and found no
 mismatches. This note is just the couple of things you can't see from your side.
