@@ -1,6 +1,6 @@
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const PHONE_PATTERN = /^[+0-9 ()-]{7,20}$/
-const DASHBOARD_VARIANTS = new Set(['halo', 'timeline', 'companion'])
+const DASHBOARD_VARIANTS = new Set(['ritual', 'halo', 'timeline', 'companion'])
 
 export const defaultSettings = Object.freeze({
   displayName: '',
@@ -9,7 +9,13 @@ export const defaultSettings = Object.freeze({
   notificationsEnabled: false,
   smsAlerts: false,
   whatsappAlerts: false,
-  dashboardVariant: 'halo',
+  dashboardVariant: 'ritual',
+  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Kolkata',
+  doseGraceMinutes: 15,
+  l2EscalationMinutes: 30,
+  escalationEnabled: true,
+  consentVersion: '',
+  consentAcceptedAt: '',
 })
 
 export function validateSettingsForm(form) {
@@ -37,6 +43,15 @@ export function validateSettingsForm(form) {
     }
   }
 
+  const doseGraceMinutes = Number(form?.doseGraceMinutes ?? defaultSettings.doseGraceMinutes)
+  const l2EscalationMinutes = Number(form?.l2EscalationMinutes ?? defaultSettings.l2EscalationMinutes)
+  if (!Number.isInteger(doseGraceMinutes) || doseGraceMinutes < 1 || doseGraceMinutes > 240) {
+    errors.doseGraceMinutes = 'Level 1 escalation must be between 1 and 240 minutes.'
+  }
+  if (!Number.isInteger(l2EscalationMinutes) || l2EscalationMinutes < 2 || l2EscalationMinutes > 480) {
+    errors.l2EscalationMinutes = 'Level 2 escalation must be between 2 and 480 minutes.'
+  }
+
   return errors
 }
 
@@ -55,6 +70,12 @@ export function sanitizeSettings(form) {
     smsAlerts: Boolean(form?.smsAlerts),
     whatsappAlerts: Boolean(form?.whatsappAlerts),
     dashboardVariant: DASHBOARD_VARIANTS.has(form?.dashboardVariant) ? form.dashboardVariant : defaultSettings.dashboardVariant,
+    timezone: String(form?.timezone || defaultSettings.timezone).trim().slice(0, 64),
+    doseGraceMinutes: Math.min(240, Math.max(1, Math.round(Number(form?.doseGraceMinutes ?? defaultSettings.doseGraceMinutes) || defaultSettings.doseGraceMinutes))),
+    l2EscalationMinutes: Math.min(480, Math.max(2, Math.round(Number(form?.l2EscalationMinutes ?? defaultSettings.l2EscalationMinutes) || defaultSettings.l2EscalationMinutes))),
+    escalationEnabled: form?.escalationEnabled !== false,
+    consentVersion: String(form?.consentVersion ?? '').trim().slice(0, 40),
+    consentAcceptedAt: String(form?.consentAcceptedAt ?? '').trim().slice(0, 80),
   }
 }
 

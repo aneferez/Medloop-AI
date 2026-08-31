@@ -1,4 +1,5 @@
 import {
+  ArrowRight,
   Bell,
   CalendarClock,
   Check,
@@ -6,17 +7,42 @@ import {
   ChevronRight,
   Circle,
   Clock3,
+  Droplets,
   HeartPulse,
+  PackageOpen,
   Pill,
+  ShieldCheck,
   Sparkles,
   X,
 } from 'lucide-react'
 import { CircularProgress } from '@mui/material'
-import { getLocalDateKey } from '../lib/medicineSchedule'
+import { getEnabledDosePeriods, getLocalDateKey } from '../lib/medicineSchedule'
 import { DASHBOARD_VARIANTS, getDashboardDoses, getDoseSummary, getNextDashboardDose } from '../lib/dashboard'
+import { formatStockAmount, getDailyStockUse, isStockLow, isStockTracked, normalizeStockRemaining } from '../lib/medicineStock'
 
 function formatFriendlyDate() {
-  return new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date())
+  return new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).format(new Date())
+}
+
+function formatDoseTime(time) {
+  const [hours, minutes] = String(time || '').split(':').map(Number)
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return time || 'Not scheduled'
+  const date = new Date(2000, 0, 1, hours, minutes)
+  return new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(date)
+}
+
+function getPatientName(displayName, familyMembers) {
+  const patient = (familyMembers || []).find((member) => (
+    member?.isPatient || member?.isPrimaryPatient || ['patient', 'self'].includes(String(member?.role || '').toLowerCase())
+  ))
+  return patient?.name || displayName || 'You'
+}
+
+function getCaregiver(familyMembers) {
+  return (familyMembers || []).find((member) => member?.alertLevel === 'Level 1')
+    || (familyMembers || []).find((member) => member?.alertLevel === 'Level 2')
+    || (familyMembers || [])[0]
+    || null
 }
 
 function VariantSwitcher({ value, onChange }) {
@@ -38,6 +64,7 @@ function VariantSwitcher({ value, onChange }) {
 }
 
 function DashboardMasthead({ displayName, variant, setVariant }) {
+  if (variant === 'ritual') return null
   return (
     <header className="dashboard-masthead">
       <div className="dashboard-identity">
@@ -49,6 +76,129 @@ function DashboardMasthead({ displayName, variant, setVariant }) {
       </div>
       <VariantSwitcher value={variant} onChange={setVariant} />
     </header>
+  )
+}
+
+function RitualProgressRow({ dose, isNext = false }) {
+  const StatusIcon = dose.status === 'taken' ? CheckCircle2 : dose.status === 'missed' ? X : Circle
+  const statusLabel = dose.status === 'pending' ? (isNext ? 'Due next' : 'Upcoming') : dose.status
+  return (
+    <li className={`ritual-progress-row ${dose.status}`}>
+      <span className="ritual-progress-marker"><StatusIcon size={15} /></span>
+      <div><strong>{formatDoseTime(dose.time)}</strong><span>{dose.medicineName}</span></div>
+      <small>{statusLabel}</small>
+    </li>
+  )
+}
+
+function RitualSupplyRow({ medicine }) {
+  const doseCount = getEnabledDosePeriods(medicine).length
+  const dailyUse = getDailyStockUse(medicine, doseCount)
+  const stockRemaining = normalizeStockRemaining(medicine.stockRemaining)
+  const days = stockRemaining === null || dailyUse <= 0 ? null : Math.floor(stockRemaining / dailyUse)
+  const low = isStockLow(medicine, doseCount)
+  return (
+    <li className="ritual-supply-row">
+      <span className={`ritual-supply-icon ${low ? 'low' : ''}`}><Pill size={17} /></span>
+      <div><strong>{medicine.name}</strong><small>{formatStockAmount(medicine.stockRemaining, medicine.stockUnitLabel)}</small></div>
+      <span className={low ? 'ritual-stock-low' : 'ritual-stock-ok'}>{days === null ? '—' : `${days} days`}</span>
+    </li>
+  )
+}
+
+function RitualDashboard({ doses, progress, medicines, familyMembers, displayName, updateMedicine, navigateTo }) {
+  const nextDose = getNextDashboardDose(doses)
+  const summary = getDoseSummary(doses)
+  const patientName = getPatientName(displayName, familyMembers)
+  const caregiver = getCaregiver(familyMembers)
+  const completedProgress = summary.total ? Math.round((summary.taken / summary.total) * 100) : progress
+  const trackedMedicines = medicines.filter(isStockTracked).slice(0, 3)
+  const nextStatus = nextDose?.status === 'missed' ? 'Missed' : nextDose ? 'Due next' : 'All done'
+  const firstName = String(patientName).trim().split(/\s+/)[0] || 'there'
+
+  return (
+    <div className="ritual-dashboard">
+      <header className="ritual-dashboard-heading">
+        <div>
+          <p className="ritual-date">{formatFriendlyDate()}</p>
+          <h2>Good morning, {firstName}.</h2>
+        </div>
+        <div className="ritual-patient-context">
+          <span>Care plan for</span>
+          <strong>{patientName}</strong>
+        </div>
+      </header>
+
+      <div className="ritual-main-grid">
+        <section className={`ritual-focus-panel ${nextDose ? '' : 'routine-complete'}`} aria-labelledby="ritual-focus-title">
+          <div className="ritual-focus-orbit" aria-label={`${completedProgress}% of today's doses completed`}>
+            <CircularProgress className="ritual-orbit-track" size={438} thickness={1.1} value={100} variant="determinate" />
+            <CircularProgress className="ritual-orbit-progress" size={438} thickness={1.1} value={completedProgress} variant="determinate" />
+            {nextDose ? <span className="ritual-orbit-dot" /> : null}
+          </div>
+          <div className="ritual-focus-content">
+            <span className={`ritual-status-pill ${nextDose?.status === 'missed' ? 'missed' : 'due'}`}><Clock3 size={17} /> {nextStatus}</span>
+            <p className="ritual-next-time">{nextDose ? formatDoseTime(nextDose.time) : 'Today'}</p>
+            <h3 id="ritual-focus-title">{nextDose?.medicineName || 'Your routine is complete'}</h3>
+            <p className="ritual-dose-detail">{nextDose ? `${nextDose.dosage} · ${nextDose.label}` : 'All scheduled medication doses are recorded.'}</p>
+            {nextDose ? <p className="ritual-dose-instruction"><Droplets size={20} /> Take as scheduled</p> : null}
+            {nextDose ? (
+              <button className="ritual-confirm-btn" onClick={() => updateMedicine(nextDose.medicineId, 'taken', nextDose.id)} type="button">
+                <CheckCircle2 size={21} /> Confirm dose
+              </button>
+            ) : <button className="ritual-confirm-btn secondary" onClick={() => navigateTo('medicines')} type="button"><Pill size={20} /> Review medicines</button>}
+            <p className="ritual-confirm-help">{nextDose ? "Mark when you've taken it." : 'Keep your medication plan ready for tomorrow.'}</p>
+          </div>
+        </section>
+
+        <aside className="ritual-side-rail">
+          <section className="ritual-panel ritual-progress-panel" aria-labelledby="ritual-progress-title">
+            <header className="ritual-panel-heading">
+              <div><span className="ritual-kicker">Today&apos;s progress</span><h3 id="ritual-progress-title">{summary.taken} of {summary.total} doses</h3></div>
+              <div className="ritual-small-ring"><CircularProgress size={58} thickness={4} value={completedProgress} variant="determinate" /><strong>{completedProgress}%</strong></div>
+            </header>
+            <ul className="ritual-progress-list">
+              {doses.slice(0, 5).map((dose) => <RitualProgressRow dose={dose} isNext={dose === nextDose} key={`${dose.medicineId}-${dose.id}`} />)}
+            </ul>
+          </section>
+
+          <section className="ritual-panel ritual-supply-panel" aria-labelledby="ritual-supply-title">
+            <header className="ritual-panel-heading">
+              <div><span className="ritual-kicker">Medication supply</span><h3 id="ritual-supply-title">Your supply</h3></div>
+              <span className={`ritual-supply-status ${trackedMedicines.some((medicine) => isStockLow(medicine, getEnabledDosePeriods(medicine).length)) ? 'low' : ''}`}><PackageOpen size={15} /> {trackedMedicines.some((medicine) => isStockLow(medicine, getEnabledDosePeriods(medicine).length)) ? 'Review soon' : 'All good'}</span>
+            </header>
+            {trackedMedicines.length ? <ul className="ritual-supply-list">{trackedMedicines.map((medicine) => <RitualSupplyRow key={medicine.id} medicine={medicine} />)}</ul> : <p className="ritual-panel-empty">Add stock levels to see your supply runway.</p>}
+            <button className="ritual-panel-link" onClick={() => navigateTo('medicines')} type="button">View refills <ArrowRight size={16} /></button>
+          </section>
+        </aside>
+      </div>
+
+      <section className="ritual-schedule-panel" aria-labelledby="ritual-schedule-title">
+        <header className="ritual-schedule-heading">
+          <div><span className="ritual-kicker">Medication rhythm</span><h3 id="ritual-schedule-title">Today&apos;s schedule</h3></div>
+          <button className="ritual-panel-link" onClick={() => navigateTo('medicines')} type="button">Review plan <ArrowRight size={16} /></button>
+        </header>
+        <div className="ritual-schedule-track">
+          {doses.slice(0, 4).map((dose) => {
+            const StatusIcon = dose.status === 'taken' ? CheckCircle2 : dose.status === 'missed' ? X : Circle
+            return (
+              <article className={`ritual-schedule-item ${dose.status}`} key={`${dose.medicineId}-${dose.id}`}>
+                <time>{formatDoseTime(dose.time)}</time>
+                <span className="ritual-schedule-marker"><StatusIcon size={17} /></span>
+                <strong>{dose.medicineName}</strong>
+                <small>{dose.status === 'pending' ? (dose === nextDose ? 'Due next' : 'Upcoming') : dose.status}</small>
+              </article>
+            )
+          })}
+        </div>
+      </section>
+
+      <section className="ritual-care-signal">
+        <span className="ritual-care-icon"><ShieldCheck size={23} /></span>
+        <div><strong>{caregiver ? 'Caregiver connected' : "You're on track"}</strong><p>{caregiver ? `${caregiver.name} can see the care signals you choose to share.` : 'Add a caregiver when you want support around your routine.'}</p></div>
+        <button onClick={() => navigateTo('family')} type="button">{caregiver ? 'Manage care circle' : 'Connect caregiver'} <ArrowRight size={17} /></button>
+      </section>
+    </div>
   )
 }
 
@@ -160,12 +310,13 @@ function CompanionDashboard({ doses, progress, alerts, updateMedicine, navigateT
   )
 }
 
-function DashboardPage({ progress, medicines, alerts, appointments, updateMedicine, navigateTo, displayName, dashboardVariant = 'halo', setDashboardVariant }) {
+function DashboardPage({ progress, medicines, familyMembers = [], alerts, appointments, updateMedicine, navigateTo, displayName, dashboardVariant = 'halo', setDashboardVariant }) {
   const doses = getDashboardDoses(medicines, getLocalDateKey())
   return (
     <section className={`page-stack redesigned-dashboard variant-${dashboardVariant}`}>
       <DashboardMasthead displayName={displayName} variant={dashboardVariant} setVariant={setDashboardVariant} />
       {doses.length === 0 ? <EmptyDashboard navigateTo={navigateTo} /> : null}
+      {doses.length > 0 && dashboardVariant === 'ritual' ? <RitualDashboard displayName={displayName} doses={doses} familyMembers={familyMembers} medicines={medicines} navigateTo={navigateTo} progress={progress} updateMedicine={updateMedicine} /> : null}
       {doses.length > 0 && dashboardVariant === 'halo' ? <HaloDashboard alerts={alerts} appointments={appointments} doses={doses} navigateTo={navigateTo} progress={progress} updateMedicine={updateMedicine} /> : null}
       {doses.length > 0 && dashboardVariant === 'timeline' ? <TimelineDashboard doses={doses} navigateTo={navigateTo} updateMedicine={updateMedicine} /> : null}
       {doses.length > 0 && dashboardVariant === 'companion' ? <CompanionDashboard alerts={alerts} doses={doses} navigateTo={navigateTo} progress={progress} updateMedicine={updateMedicine} /> : null}

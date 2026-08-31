@@ -77,8 +77,10 @@ root before shipping.
 - [x] **Android backup disabled** (`allowBackup=false`).
 - [ ] **Restrict the GCP key** (§1) — console action.
 - [ ] **Set production secrets** (§2) — console action.
-- [ ] **Turnstile widget** on the signup screen (Codex/front-end) so `TURNSTILE_SECRET`
-  verification has a token to check.
+- [x] **Turnstile widget** is mounted on the cloud signup screen. Set both the
+  public `VITE_TURNSTILE_SITE_KEY` and Worker `TURNSTILE_SECRET` to enforce it.
 - [ ] **Physical-device testing** — reminders after reboot / under battery
   restrictions; real FCM delivery (#19/#36/#39).
-- [ ] **Deploy** D1 migrations + Worker to production; smoke-test.
+- [x] **Deploy** D1 migrations + Worker to production; smoke-tested health,
+  auth validation, protected caregiver/AI/export route boundaries, and cron
+  trigger registration on 2026-08-31.

@@ -5,19 +5,20 @@ function LegalPage({ navigateTo }) {
     <section className="page-stack legal-page">
       <button className="text-btn back-link" onClick={() => navigateTo('settings')} type="button"><ArrowLeft size={16} /> Back to settings</button>
       <section className="panel-card">
-        <div className="section-header"><div><p className="section-kicker">Effective 4 July 2026</p><h2>Privacy policy</h2></div><ShieldCheck size={22} /></div>
+        <div className="section-header"><div><p className="section-kicker">Beta notice · Effective 30 August 2026</p><h2>Privacy policy</h2></div><ShieldCheck size={22} /></div>
+        <p className="legal-notice">This notice describes the current cloud-enabled beta and must receive product and legal approval before public release.</p>
         <h3>Data MedLoop handles</h3>
-        <p>MedLoop stores account details, medicine routines, dose logs, family profiles, appointments, prescription notes, profile photos, prescription images, and settings on this device. Family phone numbers are stored only to prepare missed-dose and refill-check SMS or WhatsApp messages. Dose and refill-check reminders are scheduled locally on your device.</p>
+        <p>MedLoop stores account details, medicine routines, dose logs, family profiles, appointments, prescription notes, profile photos, prescription images, and settings on this device. When cloud sync is enabled, these records may also be sent to the MedLoop backend. Prescription images may be mirrored to cloud file storage. Push registration uses a device token so generic reminders can be delivered.</p>
         <h3>How data is used</h3>
-        <p>Data is used only to provide local account access, medicine reminders, adherence history, family SMS or WhatsApp drafts, and prescription-note storage.</p>
+        <p>Data is used to provide account access, medicine reminders, adherence history, family care coordination, emergency alerts, prescription-note storage, and synchronization between linked devices.</p>
         <h3>Service providers</h3>
-        <p>MedLoop does not use Firebase, cloud databases, cloud functions, hosted AI, analytics, crash reporting, App Check, or cloud storage in this local-only build. Family messages are prepared locally and opened in your device's SMS app or WhatsApp for your review; MedLoop does not send them automatically. WhatsApp is a separate service with its own privacy terms.</p>
+        <p>Cloud sync uses the MedLoop Cloudflare Worker, D1 database, and R2 file storage. Firebase Cloud Messaging may deliver generic notification events. The current in-app help guide uses approved local help content and does not send questions to a hosted AI service. OCR and a personal AI assistant require separate consent and final service disclosures before release.</p>
         <h3>Retention and deletion</h3>
-        <p>Local data remains on the device until you delete individual records, delete the account in Settings, clear app storage, or uninstall the app. Data stored locally on another device must be removed from that device separately.</p>
+        <p>Local data remains on the device until you delete individual records, clear app storage, or uninstall the app. Linked devices can retain their own local copies. Cloud retention and complete remote account deletion are being finalized in the beta backend; do not treat local deletion as remote deletion until the app displays a confirmed cloud deletion receipt.</p>
         <h3>Your choices</h3>
-        <p>You can disable notifications, family SMS drafts, and WhatsApp messages, edit saved records, and delete your local account. MedLoop requires local sign-in before medicine data can be used. For privacy requests that cannot be completed in the app, use the developer contact shown on the app store listing.</p>
+        <p>You can disable notifications, edit saved records, request export or correction when available, and contact the developer for deletion or privacy requests that cannot yet be completed in the app. MedLoop requires sign-in before cloud records can be used.</p>
         <h3>Security</h3>
-        <p>MedLoop keeps this build's data on the device and disables Android cloud backup. No system can guarantee absolute security; avoid entering information that is not needed for medicine coordination.</p>
+        <p>Android cloud backup is disabled for MedLoop app data. Health records sent to cloud services are protected by authenticated access and backend authorization. No system can guarantee absolute security; enter only the information needed for medicine coordination.</p>
       </section>
       <section className="panel-card">
         <div className="section-header"><div><p className="section-kicker">Important safety information</p><h2>Medical disclaimer</h2></div><Stethoscope size={22} /></div>

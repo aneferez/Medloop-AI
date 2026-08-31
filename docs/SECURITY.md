@@ -2,7 +2,7 @@
 
 ## Security model
 
-MedLoop protects data within a single Android application installation and gives the user explicit control over export and messaging. It does not provide server-backed identity, remote revocation, multi-device access control, administrator roles, or clinical-grade audit guarantees.
+Offline MedLoop protects data within a single Android application installation and gives the user explicit control over export and messaging. The optional cloud tier adds bearer device sessions, remote revocation, multi-device snapshot sync, server-side family access checks, and push delivery; those controls apply only when a deployed HTTPS gateway is configured and must be verified separately before release.
 
 ## Data inventory and location
 
@@ -15,6 +15,8 @@ MedLoop protects data within a single Android application installation and gives
 | Exported `.medloop` file | User-selected external destination | PBKDF2-SHA-256 + AES-256-GCM |
 | Notification text | Android notification subsystem | May be visible according to device lock-screen settings |
 | SMS/WhatsApp draft | External messaging application | Governed by the selected application after handoff |
+| Cloud snapshot and family records (optional) | Configured Cloudflare Worker/D1 gateway | Authenticated device-session bearer token; server-side access checks |
+| Prescription file (optional) | Configured R2 file tier | Authenticated prescription-scoped upload/download; retention follows gateway policy |
 
 Android manifest settings disable platform backup (`allowBackup=false`) and use data extraction rules that disable cloud backup and device transfer. This reduces unintended copying but also means uninstalling/clearing app data is destructive unless an exported backup exists.
 
@@ -26,7 +28,9 @@ Android manifest settings disable platform backup (`allowBackup=false`) and use 
 - Passwords are not stored in plaintext and are not included in backups.
 - Legacy single-SHA-256 verifiers are upgraded after successful authentication.
 - Account deletion requires the current password and an explicit confirmation.
-- There is no reset email. This prevents a fake recovery promise but means a forgotten password cannot be recovered.
+- Password reset is implemented as a single-use, time-limited email-token flow
+  through the Worker. Delivery remains disabled until the production email
+  provider secrets are configured.
 
 Local login primarily separates accounts within the app and discourages casual access. It is not a substitute for Android device encryption, a secure lock screen, or protection against a fully compromised/rooted device.
 
@@ -48,7 +52,7 @@ The app cannot recover a forgotten backup password.
 
 Declared manifest permissions:
 
-- `INTERNET`: required by the Capacitor WebView/runtime even though the current app has no MedLoop backend.
+- `INTERNET`: required by the Capacitor WebView/runtime and by the optional cloud gateway/push tier.
 - `SCHEDULE_EXACT_ALARM`: supports exact medicine reminder delivery after user/system approval.
 
 Camera hardware is declared optional. Runtime camera/gallery and notification permissions are requested through Capacitor. The only exported activity is the launcher `MainActivity`; it uses `singleTask`. The FileProvider is not exported and grants URI permissions only for explicit shares.
@@ -57,7 +61,7 @@ Review lock-screen notification settings on shared devices because medicine name
 
 ## Privacy behavior
 
-- No Firebase, analytics, crash reporting, remote database, cloud AI, or advertising SDK is active.
+- No Firebase client SDK, analytics, crash reporting, or advertising SDK is active. The optional cloud tier uses a Cloudflare Worker/D1/R2/FCM gateway; AI requests are only available through the authenticated gateway when configured.
 - Bundled voice instructions play locally and do not contain or transmit user-entered health details.
 - SMS and WhatsApp integrations create drafts and require the user to send them.
 - Backup sharing is user initiated through the Android share sheet.
@@ -76,7 +80,7 @@ Deleting data inside MedLoop cannot delete previously exported backups or messag
 - IndexedDB media relies on the Android app sandbox and device-at-rest security rather than application-level encryption.
 - A rooted/compromised device or malicious accessibility/overlay software may defeat local protections.
 - Notification content can expose health-related information on a lock screen.
-- Local accounts are not synchronized, remotely revocable, or recoverable.
+- Offline local accounts are not synchronized, remotely revocable, or recoverable. Cloud device sessions are revocable through the gateway, but cloud deletion and authorization must be verified against the deployed backend before release.
 - The repository currently has no automated dependency scanning or CI security gate.
 - Android release builds currently set `minifyEnabled false`; code shrinking/obfuscation is not a security control and is not enabled.
 - There is no formal healthcare compliance certification. Do not claim HIPAA, GDPR, DPDP, medical-device, or other regulatory compliance without a dedicated legal/technical assessment.
@@ -94,4 +98,8 @@ Deleting data inside MedLoop cannot delete previously exported backups or messag
 
 ## Reporting a vulnerability
 
-No public security contact is configured in this repository. Report vulnerabilities privately to the project owner and avoid filing public issues that contain credentials, health information, backup files, or reproduction data from real users. The owner should add a monitored security contact and disclosure policy before public release.
+No monitored privacy/security contact is published in this repository yet.
+Before public release, add one and document the disclosure process. Until then,
+report vulnerabilities privately to the project owner and avoid filing public
+issues that contain credentials, health information, backup files, or
+reproduction data from real users.

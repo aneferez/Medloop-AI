@@ -64,7 +64,7 @@ function GuidedFormAssistant({ form, setForm, steps, title, description, voiceSr
           <div className="assistant-progress-row"><span>Step {stepIndex + 1} of {steps.length}</span><span>{progress}%</span></div>
           <div className="assistant-progress-track"><span style={{ width: `${progress}%` }} /></div>
           <div className="assistant-question" aria-live="polite">
-            <div className="assistant-question-heading"><div><span>{step.kicker || 'One detail at a time'}</span><h4>{step.title}</h4></div><button aria-label={playing ? 'Stop voice guide' : 'Play clear voice guide'} className={`assistant-voice ${playing ? 'playing' : ''}`} onClick={playGuide} type="button">{playing ? <VolumeX size={17} /> : <Volume2 size={17} />}<span>{playing ? 'Stop' : 'Listen'}</span></button></div>
+            <div className="assistant-question-heading"><div><span>{step.kicker || 'One detail at a time'}</span><h4>{step.title}</h4></div><button aria-label={playing ? 'Stop voice guide' : 'Play English voice guide'} className={`assistant-voice ${playing ? 'playing' : ''}`} onClick={playGuide} type="button">{playing ? <VolumeX size={17} /> : <Volume2 size={17} />}<span>{playing ? 'Stop' : 'Listen in English'}</span></button></div>
             <p>{step.prompt}</p>
 
             {step.fields ? <div className="assistant-fields">{step.fields.map((field) => field.options ? (

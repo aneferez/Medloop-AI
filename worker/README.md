@@ -5,8 +5,9 @@ routing, validation, security, auth) in front of a **D1** database that holds th
 unified MedLoop data layer. File storage (R2) and scheduled jobs (Cron) are
 optional add-ons wired in by later modules.
 
-This replaces nothing that previously existed on a server — the app was
-local-first — so this is the first cloud tier MedLoop has had.
+The app remains local-first, while this tier adds server identity, consented
+caregiver access, predictive stock/adherence queries, AI guardrails, account
+export/deletion, and scheduled notification orchestration.
 
 ## Layout
 
@@ -24,7 +25,7 @@ worker/
     ├── lib/                   # errors, http/cors envelopes, ids, validation
     ├── middleware/            # cors, bearer-token auth
     ├── db/d1.js               # parameterized D1 helpers
-    └── routes/                # system (health/meta) + auth (device sessions)
+    └── routes/                # system, server auth, family, caregiver, AI, data
 ```
 
 ## First-time setup
@@ -52,14 +53,14 @@ npm run db:migrate         # apply migrations to remote D1
 npm run deploy
 ```
 
-## Auth model (foundation)
+## Auth model
 
-The **device session token is the credential**. `POST /v1/auth/register` mints a
-new patient + device and returns a bearer token **once**; the app stores it in
-secure storage and sends it as `Authorization: Bearer <token>`. Tokens are kept
-only as SHA-256 hashes server-side. Email is a display/recovery label, not a
-login key. Multi-device: call `/v1/auth/link-device` from an authenticated
-device. Password-based account recovery is a future concern layered on top.
+New accounts use `POST /v1/auth/signup` and `POST /v1/auth/login` with an email
+and password. Each response mints a device bearer token; only its hash is kept
+server-side. Email verification and password reset are single-use token flows.
+The legacy `POST /v1/auth/register` device-only path remains for offline/local
+accounts and existing installations. Multi-device linking uses
+`/v1/auth/link-device` from an authenticated device.
 
 ## Endpoints
 
@@ -69,12 +70,20 @@ requires `Authorization: Bearer <token>`. Response envelope:
 `{ "ok": false, "error": { "code", "message", "details?" } }`.
 
 **Foundation (Module A)** — `GET /health` (public), `GET /meta` (public),
-`POST /auth/register` (public), `GET /auth/session`, `POST /auth/link-device`,
-`PATCH /auth/device`, `POST /auth/revoke`.
+`POST /auth/register`, `POST /auth/signup`, `POST /auth/login`,
+`POST /auth/verify-email`, `POST /auth/password/reset-request`,
+`POST /auth/password/reset`, `GET /auth/session`, `POST /auth/link-device`,
+`PATCH /auth/device`, `POST /auth/revoke`, `GET /account/export`,
+`DELETE /account`.
 
 **Family (Module D)** — `GET/POST /family`, `GET /family/primary`,
 `GET /family/alert-target`, `GET/PATCH/DELETE /family/:id`,
-`POST /family/:id/primary`.
+`POST /family/:id/primary`, `POST /family/:id/invite`.
+
+**Caregiver network** — `POST /caregiver/accept`, `GET /caregiver/patients`,
+`GET /caregiver/inventory`, `GET /caregivers`, `PATCH /caregivers/:linkId`,
+`POST /caregivers/:linkId/revoke`, and permission-scoped
+`GET /patients/:id/inventory`, `/doses`, `/adherence`.
 
 **Medicine & stock (Module B)** — `GET/POST /medicines`,
 `GET/PATCH/DELETE /medicines/:id`, `POST /medicines/:id/dose`,
@@ -86,6 +95,10 @@ requires `Authorization: Bearer <token>`. Response envelope:
 **Scheduled jobs (Module E)** — `POST /jobs/daily-check`,
 `POST /jobs/restock-check`, `GET /jobs/runs`. Also runs automatically via the
 cron triggers in `wrangler.toml`.
+
+**AI safety** — `POST /ai/assistant` and `POST /ai/simplify`. Both validate,
+rate-limit, and apply server-side safety policy; the client pre-filter is only a
+fast UX layer.
 
 **Emergency / SOS (Module F)** — `POST /emergency` (trigger, pending confirm),
 `POST /emergency/:id/confirm`, `POST /emergency/:id/cancel`,

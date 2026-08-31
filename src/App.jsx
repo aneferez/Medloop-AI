@@ -1,5 +1,6 @@
 ﻿import { useEffect, useMemo, useState } from 'react'
 import AppShell from './components/AppShell'
+import { useCallback } from 'react'
 import { lazy, Suspense } from 'react'
 import { useRef } from 'react'
 import { App as CapacitorApp } from '@capacitor/app'
@@ -7,8 +8,10 @@ import {
   composeMissedDoseSms,
   composeRefillSms,
   deleteCurrentAccount,
+  adoptServerUser,
   loginWithEmail,
   logoutFromLocalAccount,
+  removeCurrentLocalAccount,
   observeAuthState,
   sendResetLink,
   signupWithEmail,
@@ -23,11 +26,15 @@ import { formatStockAmount, getBufferStock, isStockLow, isStockTracked, normaliz
 import { composeMissedDoseWhatsApp, composeRefillWhatsApp } from './lib/whatsapp'
 import { getSecureValue, removeSecureValue, setSecureValue } from './lib/secureStorage'
 import { backupImageToBlob, blobToBackupImage, createEncryptedBackup, decryptBackupFile, MAX_BACKUP_FILE_BYTES, saveEncryptedBackupFile } from './lib/localBackup'
+import { recognizePrescriptionText } from './lib/prescriptionOcr'
 import { pageById, pageByPath } from './navigation'
+import { isCloudEnabled } from './lib/cloud/config'
 import { useCloudSync, cloudStatusLabel } from './lib/cloud/useCloudSync'
 import { cloudBackupNote, deletePrescriptionFile, uploadPrescriptionFile } from './lib/cloud/prescriptionFiles'
 import { usePushRegistration } from './lib/cloud/usePushRegistration'
-import { clearCloudSession } from './lib/cloud/session'
+import { authenticateCloudAccount, clearCloudSession, deleteCloudAccount, ensureCloudSession, exportCloudAccount, requestPasswordReset, resendVerification, resetPassword, revokeCloudSession, verifyEmail } from './lib/cloud/session'
+import { cloudApi } from './lib/cloud/apiClient.js'
+import { acceptCurrentConsent, hasCurrentConsent } from './lib/consent'
 import LoadingPage from './pages/LoadingPage'
 import './App.css'
 
@@ -39,6 +46,7 @@ const EmergencyCardPage = lazy(() => import('./pages/EmergencyCardPage'))
 const FamilyPage = lazy(() => import('./pages/FamilyPage'))
 const HomePage = lazy(() => import('./pages/HomePage'))
 const LegalPage = lazy(() => import('./pages/LegalPage'))
+const ConsentPage = lazy(() => import('./pages/ConsentPage'))
 const MedicinesPage = lazy(() => import('./pages/MedicinesPage'))
 const PrescriptionsPage = lazy(() => import('./pages/PrescriptionsPage'))
 const ReportsPage = lazy(() => import('./pages/ReportsPage'))
@@ -314,7 +322,10 @@ function App() {
   const [authForm, setAuthForm] = useState({ email: '', password: '', name: '' })
   const [authError, setAuthError] = useState('')
   const [authSubmitting, setAuthSubmitting] = useState(false)
+  const [attestationToken, setAttestationToken] = useState('')
   const [resetFeedback, setResetFeedback] = useState('')
+  const [resetToken, setResetToken] = useState('')
+  const [verificationToken, setVerificationToken] = useState('')
   const [appNotice, setAppNotice] = useState('')
   const [familyForm, setFamilyForm] = useState(emptyFamilyForm)
   const [medicineForm, setMedicineForm] = useState(emptyMedicineForm)
@@ -333,6 +344,11 @@ function App() {
   const [prescriptionImageRevision, setPrescriptionImageRevision] = useState(0)
   const [prescriptionPhotoFeedback, setPrescriptionPhotoFeedback] = useState({})
   const [prescriptionPhotoBusyId, setPrescriptionPhotoBusyId] = useState('')
+  const [prescriptionDraftImage, setPrescriptionDraftImage] = useState(null)
+  const [prescriptionDraftImageUrl, setPrescriptionDraftImageUrl] = useState('')
+  const [prescriptionDraftBusy, setPrescriptionDraftBusy] = useState(false)
+  const [prescriptionOcr, setPrescriptionOcr] = useState({ status: 'idle', text: '', message: '' })
+  const [simplifyBusy, setSimplifyBusy] = useState(false)
   const [currentDoseDate, setCurrentDoseDate] = useState(getLocalDateKey)
   const notificationActionHandlerRef = useRef(null)
   const pendingNotificationActionRef = useRef(null)
@@ -342,19 +358,29 @@ function App() {
   const mirrorPrescriptionImageRef = useRef(() => {})
   const profilePhotoId = user?.uid ? `user:${user.uid}` : 'guest'
   const accountUsesPassword = true
+  const consentGiven = hasCurrentConsent(state.settings)
 
   // Best-effort cloud mirror (no-op unless VITE_MEDLOOP_API_URL is configured).
   const { status: cloudStatus, syncNow: cloudSyncNow } = useCloudSync({
     user,
     state,
-    accountReady,
+    accountReady: accountReady && consentGiven,
     // Records this device has never seen — e.g. signing in on a second phone.
     onAdopt: (merged) => setState(merged),
   })
 
   // Register this device for native push and send its FCM token to the backend
   // (native-only; no-op on web or when the cloud is disabled).
-  usePushRegistration({ user, accountReady })
+  const handleRemoteAlert = useCallback((alert) => {
+    if (!alert?.id) return
+    setState((current) => ({
+      ...current,
+      alerts: [alert, ...current.alerts.filter((item) => String(item.id) !== String(alert.id))].slice(0, 200),
+    }))
+    setAppNotice(alert.title || 'New care update')
+  }, [])
+
+  usePushRegistration({ user, accountReady: accountReady && consentGiven, onAlert: handleRemoteAlert })
 
   useEffect(() => {
     if (!appNotice) return undefined
@@ -430,12 +456,12 @@ function App() {
   }, [accountReady, authReady, currentPage, user])
 
   useEffect(() => {
-    if (!accountReady || !user) return
+    if (!accountReady || !user || !consentGiven) return
     const key = getLocalStorageKey(getUserStorageId(user))
     setSecureValue(key, state).catch((error) => {
       console.error('Unable to save encrypted local account state', error)
     })
-  }, [accountReady, state, user])
+  }, [accountReady, consentGiven, state, user])
 
   useEffect(() => {
     if (!accountReady) return
@@ -444,19 +470,20 @@ function App() {
     configureMedicineReminders(medicines, settings, user ? state.familyMembers : []).catch((error) => {
       console.error('Unable to configure medicine reminders', error)
     })
-  }, [accountReady, state.familyMembers, state.medicines, state.settings, user])
+  }, [accountReady, consentGiven, state.familyMembers, state.medicines, state.settings, user])
 
   useEffect(() => {
     let active = true
     setProfilePhotoBlob(null)
     setProfilePhotoFeedback('')
+    if (!consentGiven) return () => { active = false }
     getProfilePhoto(profilePhotoId)
       .then((photo) => {
         if (active) setProfilePhotoBlob(photo)
       })
       .catch((error) => console.error('Unable to load the local profile photo', error))
     return () => { active = false }
-  }, [profilePhotoId])
+  }, [consentGiven, profilePhotoId])
 
   useEffect(() => {
     if (!profilePhotoBlob || typeof URL.createObjectURL !== 'function') {
@@ -469,9 +496,19 @@ function App() {
   }, [profilePhotoBlob])
 
   useEffect(() => {
+    if (!prescriptionDraftImage || typeof URL.createObjectURL !== 'function') {
+      setPrescriptionDraftImageUrl('')
+      return undefined
+    }
+    const objectUrl = URL.createObjectURL(prescriptionDraftImage)
+    setPrescriptionDraftImageUrl(objectUrl)
+    return () => URL.revokeObjectURL(objectUrl)
+  }, [prescriptionDraftImage])
+
+  useEffect(() => {
     let active = true
     setPrescriptionPhotoFeedback({})
-    if (!accountReady || !user?.uid) {
+    if (!accountReady || !user?.uid || !consentGiven) {
       replacePrescriptionImageUrls([])
       return () => { active = false }
     }
@@ -485,7 +522,7 @@ function App() {
       })
       .catch((error) => console.error('Unable to load local prescription images', error))
     return () => { active = false }
-  }, [accountReady, prescriptionImageRevision, state.prescriptions, user?.uid])
+  }, [accountReady, consentGiven, prescriptionImageRevision, state.prescriptions, user?.uid])
 
   useEffect(() => () => {
     Object.values(prescriptionImageUrlsRef.current).forEach(revokeLocalImageUrl)
@@ -723,7 +760,11 @@ function App() {
   const resetFamilyForm = () => setFamilyForm(emptyFamilyForm)
   const resetMedicineForm = () => setMedicineForm(emptyMedicineForm)
   const resetAppointmentForm = () => setAppointmentForm(emptyAppointmentForm)
-  const resetPrescriptionForm = () => setPrescriptionForm(emptyPrescriptionForm)
+  const resetPrescriptionForm = () => {
+    setPrescriptionForm(emptyPrescriptionForm)
+    setPrescriptionDraftImage(null)
+    setPrescriptionOcr({ status: 'idle', text: '', message: '' })
+  }
 
   const saveFamilyMember = (event) => {
     event.preventDefault()
@@ -876,30 +917,50 @@ function App() {
     if (medicineForm.id === medicine.id) resetMedicineForm()
   })
 
-  const savePrescription = (event) => {
+  const savePrescription = async (event) => {
     event.preventDefault()
     if (!prescriptionForm.doctor.trim()) {
       setFormFeedback((current) => ({ ...current, prescription: 'Please add the prescribing doctor.' }))
       return
     }
+    if (!prescriptionDraftImage) {
+      setFormFeedback((current) => ({ ...current, prescription: 'Add a prescription image before saving. This image is required for prescription records.' }))
+      return
+    }
 
     setFormFeedback((current) => ({ ...current, prescription: '' }))
+    const prescriptionId = prescriptionForm.id || createRecordId()
+    try {
+      await savePrescriptionImage(user.uid, prescriptionId, prescriptionDraftImage)
+    } catch (error) {
+      setFormFeedback((current) => ({ ...current, prescription: error?.message || 'Unable to save the prescription image.' }))
+      return
+    }
     upsertItem('prescriptions', {
-      id: prescriptionForm.id || createRecordId(),
+      id: prescriptionId,
       doctor: prescriptionForm.doctor.trim(),
       clinic: prescriptionForm.clinic.trim() || 'Clinic',
       notes: prescriptionForm.notes.trim(),
     })
+    updatePrescriptionImageUrl(prescriptionId, prescriptionDraftImage)
+    setPrescriptionImageRevision((current) => current + 1)
+    mirrorPrescriptionImage(prescriptionId, prescriptionDraftImage, 'Prescription saved with image.')
     resetPrescriptionForm()
   }
 
-  const editPrescription = (prescription) => {
+  const editPrescription = async (prescription) => {
     setPrescriptionForm({
       id: prescription.id,
       doctor: prescription.doctor || '',
       clinic: prescription.clinic || '',
       notes: prescription.notes || '',
     })
+    setPrescriptionDraftImage(null)
+    setPrescriptionOcr({ status: 'idle', text: '', message: '' })
+    if (user?.uid) {
+      const image = await getPrescriptionImage(user.uid, prescription.id).catch(() => null)
+      if (image) setPrescriptionDraftImage(image)
+    }
     setFormFeedback((current) => ({ ...current, prescription: '' }))
   }
 
@@ -968,6 +1029,59 @@ function App() {
   const capturePrescriptionImage = (prescriptionId) => attachPrescriptionImage(prescriptionId, 'camera')
   const uploadPrescriptionImage = (prescriptionId) => attachPrescriptionImage(prescriptionId, 'gallery')
 
+  const setPrescriptionDraft = async (image) => {
+    if (!image) return
+    setPrescriptionDraftImage(image)
+    setPrescriptionOcr({ status: 'processing', text: '', message: 'Reading the image on this device with Google ML Kit...' })
+    try {
+      const result = await recognizePrescriptionText(image)
+      setPrescriptionOcr(result)
+    } catch (error) {
+      setPrescriptionOcr({ status: 'failed', text: '', message: error?.message || 'OCR could not read this image. Review it and enter the written details manually.' })
+    }
+  }
+
+  const attachPrescriptionDraft = async (source) => {
+    if (prescriptionDraftBusy) return
+    setPrescriptionDraftBusy(true)
+    setPrescriptionOcr({ status: 'processing', text: '', message: source === 'camera' ? 'Opening camera...' : 'Opening photo library...' })
+    try {
+      const image = source === 'camera' ? await takePrescriptionPhoto() : await choosePrescriptionPhoto()
+      if (!image) {
+        setPrescriptionOcr({ status: 'idle', text: '', message: '' })
+        return
+      }
+      await setPrescriptionDraft(image)
+    } catch (error) {
+      setPrescriptionOcr({ status: isCameraCancellation(error) ? 'idle' : 'failed', text: '', message: isCameraCancellation(error) ? '' : error?.message || 'Unable to load this prescription image.' })
+    } finally {
+      setPrescriptionDraftBusy(false)
+    }
+  }
+
+  const capturePrescriptionDraft = () => attachPrescriptionDraft('camera')
+  const uploadPrescriptionDraft = () => attachPrescriptionDraft('gallery')
+
+  const uploadPrescriptionDraftFile = async (event) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file || prescriptionDraftBusy) return
+    setPrescriptionDraftBusy(true)
+    try {
+      await setPrescriptionDraft(validatePrescriptionImage(file))
+    } catch (error) {
+      setPrescriptionOcr({ status: 'failed', text: '', message: error?.message || 'Unable to load this prescription image.' })
+    } finally {
+      setPrescriptionDraftBusy(false)
+    }
+  }
+
+  const applyPrescriptionOcr = () => {
+    if (!prescriptionOcr.text) return
+    setPrescriptionForm((current) => ({ ...current, notes: prescriptionOcr.text }))
+    setPrescriptionOcr((current) => ({ ...current, message: 'OCR draft copied to Instructions. Review every field before saving.' }))
+  }
+
   const uploadPrescriptionImageFile = async (prescriptionId, event) => {
     const file = event.target.files?.[0]
     event.target.value = ''
@@ -993,23 +1107,6 @@ function App() {
       }))
     } finally {
       setPrescriptionPhotoBusyId('')
-    }
-  }
-
-  const removePrescriptionImage = async (prescriptionId) => {
-    if (!user?.uid || !window.confirm('Remove this prescription image from this device?')) return
-    try {
-      await deletePrescriptionImage(user.uid, prescriptionId)
-      updatePrescriptionImageUrl(prescriptionId, null)
-      setPrescriptionImageRevision((current) => current + 1)
-      setPrescriptionPhotoFeedback((current) => ({ ...current, [prescriptionId]: 'Prescription image removed from this device.' }))
-      deletePrescriptionFile(user, prescriptionId).then((result) => {
-        const note = cloudBackupNote(result)
-        if (!note) return
-        setPrescriptionPhotoFeedback((current) => ({ ...current, [prescriptionId]: `Prescription image removed from this device.${note}` }))
-      })
-    } catch {
-      setPrescriptionPhotoFeedback((current) => ({ ...current, [prescriptionId]: 'Unable to remove the prescription image.' }))
     }
   }
 
@@ -1068,14 +1165,30 @@ function App() {
     setAuthSubmitting(true)
     try {
       let result
-      if (authMode === 'signup') {
-        result = await signupWithEmail(authForm.email, authForm.password, authForm.name)
+      if (isCloudEnabled()) {
+        const cloudResult = await authenticateCloudAccount({
+          mode: authMode === 'signup' ? 'signup' : 'login',
+          email: authForm.email,
+          password: authForm.password,
+          displayName: authForm.name,
+          attestationToken,
+        })
+        result = await adoptServerUser(cloudResult.user)
+        if (cloudResult.devVerificationToken) setVerificationToken(cloudResult.devVerificationToken)
+        setAppNotice(cloudResult.user.emailVerified
+          ? `Signed in securely as ${cloudResult.user.email}.`
+          : `Account created. Verify ${cloudResult.user.email} before sharing care data.`)
       } else {
-        result = await loginWithEmail(authForm.email, authForm.password)
+        if (authMode === 'signup') {
+          result = await signupWithEmail(authForm.email, authForm.password, authForm.name)
+        } else {
+          result = await loginWithEmail(authForm.email, authForm.password)
+        }
+        const email = result?.user?.email || normalizeEmail(authForm.email)
+        setAppNotice(`User ID and protected password are saved on this device for ${email}.`)
+        void notifyAccountSaved(email).catch((error) => console.error('Unable to send account saved notification', error))
       }
-      const email = result?.user?.email || normalizeEmail(authForm.email)
-      setAppNotice(`User ID and protected password are saved on this device for ${email}.`)
-      void notifyAccountSaved(email).catch((error) => console.error('Unable to send account saved notification', error))
+      setAttestationToken('')
     } catch (error) {
       setAuthError(formatAuthError(error))
     } finally {
@@ -1084,7 +1197,15 @@ function App() {
   }
 
   const handleLogout = async () => {
+    const cloudWasEnabled = isCloudEnabled()
+    let cloudRevoked = false
+    if (cloudWasEnabled && user) {
+      cloudRevoked = await revokeCloudSession(user).catch(() => false)
+    }
     await logoutFromLocalAccount()
+    setAppNotice(cloudWasEnabled && !cloudRevoked
+      ? 'Signed out locally. The cloud device session could not be revoked while offline.'
+      : 'Signed out safely from this device.')
   }
 
   const handlePasswordReset = async () => {
@@ -1096,8 +1217,16 @@ function App() {
     setAuthError('')
     setResetFeedback('')
     try {
-      await sendResetLink(email)
-      setResetFeedback('Password reset instructions were prepared.')
+      if (isCloudEnabled()) {
+        const result = await requestPasswordReset(email)
+        setResetToken(result.devResetToken || '')
+        setResetFeedback(result.devResetToken
+          ? 'Development reset token ready. In production, use the token from your email.'
+          : 'If an account exists for this email, reset instructions have been sent.')
+      } else {
+        await sendResetLink(email)
+        setResetFeedback('Password reset instructions were prepared.')
+      }
     } catch (error) {
       setAuthError(formatAuthError(error))
     } finally {
@@ -1111,6 +1240,55 @@ function App() {
     setSettingsFeedback('Settings saved on this device.')
     setSettingsForm(settings)
     setState((current) => ({ ...current, settings }))
+  }
+
+  const handlePasswordResetComplete = async (token, password) => {
+    if (!isCloudEnabled()) return
+    setAuthError('')
+    setResetFeedback('')
+    try {
+      await resetPassword(token, password)
+      const currentUser = user
+      if (currentUser) await clearCloudSession(currentUser).catch(() => {})
+      await logoutFromLocalAccount()
+      setResetToken('')
+      setResetFeedback('Password changed. Sign in again with your new password.')
+      setAuthMode('login')
+    } catch (error) {
+      setAuthError(error?.message || 'Unable to reset the password.')
+    }
+  }
+
+  const handleVerifyEmail = async (token) => {
+    if (!isCloudEnabled()) return
+    try {
+      await verifyEmail(token)
+      setVerificationToken('')
+      if (user) await adoptServerUser({ uid: user.uid, email: user.email, displayName: user.displayName, emailVerified: true })
+      setAppNotice('Email verified. Your account can now use the caregiver network.')
+    } catch (error) {
+      setSettingsError(error?.message || 'Unable to verify this email.')
+    }
+  }
+
+  const handleResendVerification = async () => {
+    if (!user || !isCloudEnabled()) return
+    try {
+      const result = await resendVerification(user)
+      if (result.devVerificationToken) setVerificationToken(result.devVerificationToken)
+      setSettingsFeedback(result.devVerificationToken
+        ? 'Development verification token ready. In production, check the email inbox.'
+        : 'A new verification email has been sent.')
+    } catch (error) {
+      setSettingsError(error?.message || 'Unable to resend the verification email.')
+    }
+  }
+
+  const handleConsentAccept = () => {
+    const settings = sanitizeSettings(acceptCurrentConsent(state.settings))
+    setSettingsForm(settingsForUser(settings, user))
+    setState((current) => ({ ...current, settings }))
+    setAppNotice('Privacy and medical-safety consent saved on this device.')
   }
 
   const setDashboardVariant = (dashboardVariant) => {
@@ -1264,12 +1442,17 @@ function App() {
     setSettingsFeedback('Deleting account data...')
     setAccountDeleting(true)
     try {
-      await deleteCurrentAccount(accountUsesPassword ? deletePassword : '')
+      if (isCloudEnabled()) {
+        await deleteCloudAccount(user, deletePassword)
+      } else {
+        await deleteCurrentAccount(accountUsesPassword ? deletePassword : '')
+      }
       await deleteProfilePhoto(profilePhotoId)
       await deletePrescriptionImagesForOwner(user.uid)
       replacePrescriptionImageUrls([])
       await removeSecureValue(getLocalStorageKey(getUserStorageId(user)))
       await clearCloudSession(user).catch(() => {})
+      if (isCloudEnabled()) await removeCurrentLocalAccount()
       setState(createEmptyState())
       setDeletePassword('')
       setSettingsFeedback('Account deleted.')
@@ -1285,6 +1468,34 @@ function App() {
     }
   }
 
+  const handleExportCloudData = async () => {
+    if (!user || !isCloudEnabled()) throw new Error('Cloud export is available after connecting the MedLoop backend.')
+    return exportCloudAccount(user)
+  }
+
+  const simplifyPrescriptionNotes = async () => {
+    if (!isCloudEnabled()) {
+      setFormFeedback((current) => ({ ...current, prescription: 'Connect the cloud backend to use the authenticated medicine simplifier.' }))
+      return
+    }
+    if (!prescriptionForm.notes.trim()) {
+      setFormFeedback((current) => ({ ...current, prescription: 'Enter the written medicine information first.' }))
+      return
+    }
+    setSimplifyBusy(true)
+    setFormFeedback((current) => ({ ...current, prescription: '' }))
+    try {
+      const session = await ensureCloudSession(user)
+      const result = await cloudApi.ai.simplify(session.token, prescriptionForm.notes.trim())
+      setPrescriptionForm((current) => ({ ...current, notes: result.text || current.notes }))
+      setFormFeedback((current) => ({ ...current, prescription: result.refused ? 'The simplifier declined this request for safety.' : 'Simplified text inserted. Review it against the original prescription before saving.' }))
+    } catch (error) {
+      setFormFeedback((current) => ({ ...current, prescription: error?.status === 429 ? 'The MedLoop AI limit has been reached. Try again later.' : error?.message || 'Unable to simplify this text securely.' }))
+    } finally {
+      setSimplifyBusy(false)
+    }
+  }
+
   const renderAuthPage = () => (
     <AuthPage
       authMode={authMode}
@@ -1296,6 +1507,11 @@ function App() {
       authSubmitting={authSubmitting}
       handleAuthSubmit={handleAuthSubmit}
       handlePasswordReset={handlePasswordReset}
+      cloudEnabled={isCloudEnabled()}
+      resetToken={resetToken}
+      setResetToken={setResetToken}
+      handlePasswordResetComplete={handlePasswordResetComplete}
+      setAttestationToken={setAttestationToken}
     />
   )
 
@@ -1303,7 +1519,7 @@ function App() {
     if (currentPage === 'auth') {
       if (!authReady) return <LoadingPage />
       if (user) {
-        return <DashboardPage progress={progress} nextMedicine={nextMedicine} medicines={state.medicines} alerts={alerts} appointments={state.appointments} updateMedicine={updateMedicine} navigateTo={navigateTo} displayName={state.settings.displayName || user?.displayName} dashboardVariant={state.settings.dashboardVariant} setDashboardVariant={setDashboardVariant} />
+        return <DashboardPage progress={progress} nextMedicine={nextMedicine} medicines={state.medicines} familyMembers={state.familyMembers} alerts={alerts} appointments={state.appointments} updateMedicine={updateMedicine} navigateTo={navigateTo} displayName={state.settings.displayName || user?.displayName} dashboardVariant={state.settings.dashboardVariant} setDashboardVariant={setDashboardVariant} />
       }
       return renderAuthPage()
     }
@@ -1317,6 +1533,7 @@ function App() {
             progress={progress}
             nextMedicine={nextMedicine}
             medicines={state.medicines}
+            familyMembers={state.familyMembers}
             alerts={alerts}
             appointments={state.appointments}
             updateMedicine={updateMedicine}
@@ -1339,6 +1556,8 @@ function App() {
             resetFamilyForm={resetFamilyForm}
             prepareRefillAlert={prepareRefillAlert}
             formFeedback={formFeedback.family}
+            user={user}
+            cloudSyncNow={cloudSyncNow}
           />
         )
       case 'medicines':
@@ -1368,12 +1587,21 @@ function App() {
             resetPrescriptionForm={resetPrescriptionForm}
             formFeedback={formFeedback.prescription}
             prescriptionImageUrls={prescriptionImageUrls}
+            prescriptionDraftImageUrl={prescriptionDraftImageUrl}
+            prescriptionDraftBusy={prescriptionDraftBusy}
+            prescriptionOcr={prescriptionOcr}
             prescriptionPhotoFeedback={prescriptionPhotoFeedback}
             prescriptionPhotoBusyId={prescriptionPhotoBusyId}
             capturePrescriptionImage={capturePrescriptionImage}
             uploadPrescriptionImage={uploadPrescriptionImage}
+            capturePrescriptionDraft={capturePrescriptionDraft}
+            uploadPrescriptionDraft={uploadPrescriptionDraft}
+            uploadPrescriptionDraftFile={uploadPrescriptionDraftFile}
+            applyPrescriptionOcr={applyPrescriptionOcr}
             uploadPrescriptionImageFile={uploadPrescriptionImageFile}
-            removePrescriptionImage={removePrescriptionImage}
+            simplifyPrescriptionNotes={simplifyPrescriptionNotes}
+            simplifyBusy={simplifyBusy}
+            cloudEnabled={isCloudEnabled()}
           />
         )
       case 'alerts':
@@ -1392,7 +1620,7 @@ function App() {
           />
         )
       case 'reports':
-        return <ReportsPage medicines={state.medicines} doseLogs={state.doseLogs} />
+        return <ReportsPage medicines={state.medicines} doseLogs={state.doseLogs} user={user} />
       case 'emergency-card':
         return <EmergencyCardPage members={state.familyMembers} medicines={state.medicines} user={user} />
       case 'settings':
@@ -1411,6 +1639,11 @@ function App() {
             enableMedicineReminders={enableMedicineReminders}
             testMedicineReminder={testMedicineReminder}
             handleDeleteAccount={handleDeleteAccount}
+            handleExportCloudData={handleExportCloudData}
+            verificationToken={verificationToken}
+            setVerificationToken={setVerificationToken}
+            handleVerifyEmail={handleVerifyEmail}
+            handleResendVerification={handleResendVerification}
             deletePassword={deletePassword}
             setDeletePassword={setDeletePassword}
             accountDeleting={accountDeleting}
@@ -1427,7 +1660,7 @@ function App() {
       case 'legal':
         return <LegalPage navigateTo={navigateTo} />
       default:
-        return <DashboardPage progress={progress} nextMedicine={nextMedicine} medicines={state.medicines} alerts={alerts} appointments={state.appointments} updateMedicine={updateMedicine} navigateTo={navigateTo} displayName={state.settings.displayName || user?.displayName} dashboardVariant={state.settings.dashboardVariant} setDashboardVariant={setDashboardVariant} />
+        return <DashboardPage progress={progress} nextMedicine={nextMedicine} medicines={state.medicines} familyMembers={state.familyMembers} alerts={alerts} appointments={state.appointments} updateMedicine={updateMedicine} navigateTo={navigateTo} displayName={state.settings.displayName || user?.displayName} dashboardVariant={state.settings.dashboardVariant} setDashboardVariant={setDashboardVariant} />
     }
   }
 
@@ -1448,6 +1681,14 @@ function App() {
     </div>
   )
 
+  if (!consentGiven) return (
+    <div className="auth-frame">
+      <Suspense fallback={<LoadingPage />}><ConsentPage user={user} onAccept={handleConsentAccept} onSignOut={handleLogout} /></Suspense>
+      <footer className="app-footer">Developed by Aneruth <span aria-hidden="true">|</span> Rosaline</footer>
+      {appNoticeElement}
+    </div>
+  )
+
   return (
     <>
       <AppShell
@@ -1458,6 +1699,8 @@ function App() {
         profilePhotoUrl={profilePhotoUrl || user?.photoURL || ''}
         navigateTo={navigateTo}
         handleLogout={handleLogout}
+        familyMembers={state.familyMembers}
+        alertCount={alerts.length}
         assistantContext={{
           displayName: state.settings.displayName,
           familyCount: state.familyMembers.length,

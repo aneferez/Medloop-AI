@@ -1,6 +1,6 @@
 import { Avatar, Button, Stack } from '@mui/material'
 import { useState } from 'react'
-import { BellRing, Download, FileText, HardDrive, ShieldCheck, Smartphone, Trash2, Upload } from 'lucide-react'
+import { BellRing, CloudDownload, Download, FileText, HardDrive, MailCheck, ShieldCheck, Smartphone, Trash2, Upload } from 'lucide-react'
 import { defaultSettings, sanitizeSettings, validateSettingsForm } from '../lib/settings'
 import { isCloudEnabled } from '../lib/cloud/config'
 import { createLinkCode, ensureCloudSession, redeemLinkCode } from '../lib/cloud/session'
@@ -16,6 +16,7 @@ function DevicePairingPanel({ user }) {
   const [feedback, setFeedback] = useState('')
   const [error, setError] = useState('')
   const [token, setToken] = useState('')
+  const showDeveloperTools = import.meta.env.DEV
 
   if (!isCloudEnabled() || !user) return null
 
@@ -98,26 +99,28 @@ function DevicePairingPanel({ user }) {
         </button>
       </form>
 
-      <details className="device-token-tools">
-        <summary>Developer: device token</summary>
-        <p className="helper-text">For testing push and API calls (e.g. the daily-check trigger). Treat it like a password.</p>
-        <div className="pairing-row">
-          <button className="secondary-btn" disabled={busy === 'token'} onClick={revealToken} type="button">
-            {busy === 'token' ? 'Reading…' : 'Show device token'}
-          </button>
-          {token ? <button className="secondary-btn" onClick={copyToken} type="button">Copy</button> : null}
-        </div>
-        {token ? (
-          <textarea
-            aria-label="Device token"
-            className="device-token-field"
-            onFocus={(event) => event.target.select()}
-            readOnly
-            rows={2}
-            value={token}
-          />
-        ) : null}
-      </details>
+      {showDeveloperTools ? (
+        <details className="device-token-tools">
+          <summary>Developer: device token</summary>
+          <p className="helper-text">Development builds only. Treat this credential like a password and never share it.</p>
+          <div className="pairing-row">
+            <button className="secondary-btn" disabled={busy === 'token'} onClick={revealToken} type="button">
+              {busy === 'token' ? 'Reading…' : 'Show device token'}
+            </button>
+            {token ? <button className="secondary-btn" onClick={copyToken} type="button">Copy</button> : null}
+          </div>
+          {token ? (
+            <textarea
+              aria-label="Device token"
+              className="device-token-field"
+              onFocus={(event) => event.target.select()}
+              readOnly
+              rows={2}
+              value={token}
+            />
+          ) : null}
+        </details>
+      ) : null}
 
       {feedback ? <p className="helper-text">{feedback}</p> : null}
       {error ? <p className="error-text">{error}</p> : null}
@@ -145,6 +148,11 @@ function SettingsPage({
   handleRemoveProfilePhoto,
   handleExportBackup,
   handleImportBackup,
+  handleExportCloudData,
+  verificationToken,
+  setVerificationToken,
+  handleVerifyEmail,
+  handleResendVerification,
   navigateTo,
 }) {
   const [backupPassword, setBackupPassword] = useState('')
@@ -153,7 +161,26 @@ function SettingsPage({
   const [backupError, setBackupError] = useState('')
   const form = settingsForm ?? defaultSettings
   const displayedPhotoUrl = profilePhotoUrl || user?.photoURL || ''
+  const cloudEnabled = isCloudEnabled()
   const update = (patch) => setSettingsForm?.({ ...form, ...patch, _errors: {} })
+  const exportCloudData = async () => {
+    setBackupBusy(true); setBackupError(''); setBackupFeedback('')
+    try {
+      const data = await handleExportCloudData()
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `medloop-cloud-export-${new Date().toISOString().slice(0, 10)}.json`
+      link.click()
+      URL.revokeObjectURL(url)
+      setBackupFeedback('Cloud data export downloaded.')
+    } catch (error) {
+      setBackupError(error?.message || 'Unable to export cloud data.')
+    } finally {
+      setBackupBusy(false)
+    }
+  }
   const items = [
     {
       icon: BellRing,
@@ -183,6 +210,25 @@ function SettingsPage({
 
   return (
     <section className="page-stack">
+      {cloudEnabled && !user?.emailVerified ? (
+        <section className="panel-card verification-panel">
+          <div className="section-header"><div><p className="section-kicker">Account security</p><h2>Verify your email</h2></div><MailCheck size={20} /></div>
+          <p>Verification is required before you share medication information with a caregiver. In production, use the token from the verification email.</p>
+          <div className="button-row">
+            <label className="field grow"><span>Verification token</span><input autoComplete="one-time-code" onChange={(event) => setVerificationToken?.(event.target.value)} placeholder="Paste the email token" value={verificationToken || ''} /></label>
+            <button className="primary-btn" disabled={!verificationToken || verificationToken.trim().length < 10} onClick={() => handleVerifyEmail?.(verificationToken)} type="button">Verify email</button>
+            <button className="secondary-btn" onClick={handleResendVerification} type="button">Resend email</button>
+          </div>
+        </section>
+      ) : null}
+
+      {cloudEnabled && user?.emailVerified ? (
+        <section className="panel-card verification-panel verified">
+          <div className="section-header"><div><p className="section-kicker">Account security</p><h2>Verified MedLoop account</h2></div><MailCheck size={20} /></div>
+          <p>Your server identity is verified. Caregiver access, AI requests, and cloud data controls are available for this account.</p>
+        </section>
+      ) : null}
+
       <section className="panel-card profile-photo-panel">
         <div className="section-header"><div><p className="section-kicker">Profile</p><h2>Profile photo</h2></div></div>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ alignItems: { xs: 'flex-start', sm: 'center' } }}>
@@ -222,6 +268,7 @@ function SettingsPage({
               try { setBackupFeedback(await handleImportBackup(file, backupPassword)) } catch (error) { setBackupError(error?.message || 'Unable to restore backup.') } finally { setBackupBusy(false) }
             }} type="file" />
           </Button>
+          {cloudEnabled ? <button className="secondary-btn" disabled={backupBusy} onClick={exportCloudData} type="button"><CloudDownload size={16} /> Export cloud data</button> : null}
         </div>
         {backupFeedback ? <p className="helper-text" role="status">{backupFeedback}</p> : null}
         {backupError ? <p className="error-text" role="alert">{backupError}</p> : null}
@@ -246,6 +293,12 @@ function SettingsPage({
           <label className="field"><span>Display name</span><input aria-invalid={Boolean(form._errors?.displayName)} aria-label="Display name" maxLength={60} onChange={(event) => update({ displayName: event.target.value })} placeholder="How MedLoop should greet you" value={form.displayName} />{form._errors?.displayName ? <p className="error-text" role="alert">{form._errors.displayName}</p> : null}</label>
           <label className="field"><span>Notification email</span><input aria-invalid={Boolean(form._errors?.email)} aria-label="Notification email" onChange={(event) => update({ email: event.target.value })} placeholder="you@example.com" type="email" value={form.email} />{form._errors?.email ? <p className="error-text" role="alert">{form._errors.email}</p> : null}</label>
           <label className="field"><span>Reminder lead time (minutes)</span><input aria-invalid={Boolean(form._errors?.reminderLeadMinutes)} aria-label="Reminder lead time in minutes" inputMode="numeric" max="240" min="0" onChange={(event) => update({ reminderLeadMinutes: event.target.value })} type="number" value={form.reminderLeadMinutes} />{form._errors?.reminderLeadMinutes ? <p className="error-text" role="alert">{form._errors.reminderLeadMinutes}</p> : null}</label>
+          <label className="field"><span>Timezone</span><input aria-label="Notification timezone" onChange={(event) => update({ timezone: event.target.value })} placeholder="Asia/Kolkata" value={form.timezone || ''} /></label>
+          <div className="field-row">
+            <label className="field"><span>Level 1 escalation (minutes)</span><input aria-invalid={Boolean(form._errors?.doseGraceMinutes)} min="1" max="240" onChange={(event) => update({ doseGraceMinutes: event.target.value })} type="number" value={form.doseGraceMinutes ?? 15} />{form._errors?.doseGraceMinutes ? <p className="error-text" role="alert">{form._errors.doseGraceMinutes}</p> : null}</label>
+            <label className="field"><span>Level 2 escalation (minutes)</span><input aria-invalid={Boolean(form._errors?.l2EscalationMinutes)} min="2" max="480" onChange={(event) => update({ l2EscalationMinutes: event.target.value })} type="number" value={form.l2EscalationMinutes ?? 30} />{form._errors?.l2EscalationMinutes ? <p className="error-text" role="alert">{form._errors.l2EscalationMinutes}</p> : null}</label>
+          </div>
+          <label className="field inline-field"><input aria-label="Enable missed-dose escalation" checked={form.escalationEnabled !== false} onChange={(event) => update({ escalationEnabled: event.target.checked })} type="checkbox" /><span>Escalate unresolved doses to Level 1 and Level 2 caregivers</span></label>
           <label className="field inline-field"><input aria-label="Prepare SMS alerts" checked={Boolean(form.smsAlerts)} onChange={(event) => update({ smsAlerts: event.target.checked })} type="checkbox" /><span>Prepare a family SMS draft for missed doses</span></label>
           <label className="field inline-field"><input aria-label="Prepare WhatsApp alerts" checked={Boolean(form.whatsappAlerts)} onChange={(event) => update({ whatsappAlerts: event.target.checked })} type="checkbox" /><span>Prepare a family WhatsApp message for missed doses</span></label>
           {form.notificationsEnabled ? <label className="field inline-field"><input aria-label="Enable device reminders" checked onChange={(event) => update({ notificationsEnabled: event.target.checked })} type="checkbox" /><span>Keep device reminders enabled</span></label> : null}
@@ -270,7 +323,7 @@ function SettingsPage({
 
       <section className="panel-card danger-zone">
         <div className="section-header"><div><p className="section-kicker">Account controls</p><h2>Delete account</h2></div><Trash2 size={20} /></div>
-        <p>Permanently removes this local MedLoop account and its records from this device.</p>
+        <p>{cloudEnabled ? 'Permanently removes the cloud account, health records, linked caregivers, prescription files, devices, and this device’s local copy.' : 'Permanently removes this local MedLoop account and its records from this device.'}</p>
         {accountUsesPassword ? <label className="field"><span>Current password</span><input autoComplete="current-password" disabled={!user || accountDeleting} onChange={(event) => setDeletePassword(event.target.value)} placeholder="Confirm password to delete" type="password" value={deletePassword} /></label> : null}
         <button className="danger-btn" disabled={!user || (accountUsesPassword && !deletePassword) || accountDeleting} onClick={handleDeleteAccount} type="button"><Trash2 size={16} /> {accountDeleting ? 'Deleting account...' : 'Delete my account'}</button>
       </section>

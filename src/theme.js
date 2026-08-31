@@ -3,12 +3,12 @@ import { createTheme } from '@mui/material/styles'
 const medLoopTheme = createTheme({
   palette: {
     mode: 'light',
-    primary: { main: '#4338ca', dark: '#312e81', light: '#eef2ff' },
-    secondary: { main: '#0f766e', dark: '#115e59', light: '#ccfbf1' },
-    background: { default: '#f4f7fb', paper: '#ffffff' },
-    error: { main: '#dc2626' },
-    warning: { main: '#b45309' },
-    text: { primary: '#172033', secondary: '#5f6b7a' },
+    primary: { main: '#0f766e', dark: '#0b5b55', light: '#e6f6f3' },
+    secondary: { main: '#0f9d8a', dark: '#087c73', light: '#e4f4f1' },
+    background: { default: '#f4f7fa', paper: '#ffffff' },
+    error: { main: '#c2413a' },
+    warning: { main: '#a15c00' },
+    text: { primary: '#102a43', secondary: '#627d98' },
   },
   shape: { borderRadius: 12 },
   typography: {

@@ -1,43 +1,43 @@
 :root {
   color-scheme: light;
-  --bg: #f4f7fb;
+  --bg: #f4f7fa;
   --surface: #ffffff;
-  --surface-2: #ffffff;
-  --surface-subtle: #f8faff;
-  --surface-tint: #e9f0f5;
+  --surface-2: #eaf0f4;
+  --surface-subtle: #f8fafc;
+  --surface-tint: #e4f4f1;
   --field-bg: #ffffff;
   --topbar-bg: rgba(255, 255, 255, 0.96);
-  --hero-bg: #edf2f3;
-  --text: #172033;
-  --text-soft: #41515e;
-  --muted: #5f6b7a;
-  --navy: #312e81;
-  --navy-soft: #3730a3;
-  --primary: #4338ca;
-  --primary-dark: #312e81;
-  --primary-soft: #eef2ff;
-  --primary-strong: #4f46e5;
-  --teal: #0f766e;
-  --teal-soft: #ccfbf1;
-  --coral: #dc2626;
-  --coral-soft: #fef2f2;
-  --amber: #a8640a;
-  --amber-soft: #fff6df;
-  --border: #e7ebf4;
-  --border-strong: #c5cde0;
-  --border-subtle: #e7ebee;
-  --toast-bg: rgba(204, 251, 241, 0.94);
-  --toast-border: #8bd9cc;
-  --toast-text: #0f3d38;
-  --gradient-accent: linear-gradient(135deg, #4f46e5 0%, #0f766e 100%);
+  --hero-bg: #eaf2f5;
+  --text: #102a43;
+  --text-soft: #486581;
+  --muted: #627d98;
+  --navy: #0b1f33;
+  --navy-soft: #143b52;
+  --primary: #0f766e;
+  --primary-dark: #0b5b55;
+  --primary-soft: #e6f6f3;
+  --primary-strong: #0d9488;
+  --teal: #0f9d8a;
+  --teal-soft: #e4f4f1;
+  --coral: #c2413a;
+  --coral-soft: #fdecec;
+  --amber: #a15c00;
+  --amber-soft: #fff5df;
+  --border: #d9e2ec;
+  --border-strong: #b7c9d6;
+  --border-subtle: #e7eef2;
+  --toast-bg: rgba(228, 244, 241, 0.96);
+  --toast-border: #9bd8cb;
+  --toast-text: #12665d;
+  --gradient-accent: linear-gradient(135deg, #0f766e 0%, #2563eb 100%);
   --radius-sm: 6px;
   --radius: 10px;
   --radius-lg: 16px;
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
   --transition: 160ms var(--ease);
-  --shadow-sm: 0 1px 3px rgba(49, 46, 129, 0.07);
-  --shadow: 0 1px 2px rgba(24, 27, 60, 0.04), 0 12px 30px rgba(24, 27, 60, 0.05);
-  --shadow-lg: 0 18px 40px rgba(24, 27, 60, 0.14);
+  --shadow-sm: 0 1px 3px rgba(39, 33, 64, 0.07);
+  --shadow: 0 1px 2px rgba(39, 33, 64, 0.04), 0 12px 30px rgba(39, 33, 64, 0.06);
+  --shadow-lg: 0 18px 40px rgba(39, 33, 64, 0.14);
   color: var(--text);
   background: var(--bg);
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -48,35 +48,35 @@
    light mode is untouched. */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0e1526;
-  --surface: #172136;
-  --surface-2: #1e2a42;
-  --surface-subtle: #141d30;
-  --surface-tint: #223047;
-  --field-bg: #0f1829;
-  --topbar-bg: rgba(16, 23, 40, 0.9);
-  --hero-bg: #172136;
-  --text: #e8edf7;
-  --text-soft: #b7c2d6;
-  --muted: #94a2ba;
-  --navy: #141d33;
-  --navy-soft: #23305a;
-  --primary: #6366f1;
-  --primary-dark: #4f46e5;
-  --primary-soft: #232a4a;
-  --primary-strong: #818cf8;
-  --teal: #2dd4bf;
-  --teal-soft: #123b39;
-  --coral: #f87171;
-  --coral-soft: #3a1d20;
-  --amber: #fbbf24;
-  --amber-soft: #3a2f14;
-  --border: #29344c;
-  --border-strong: #3a4763;
-  --border-subtle: #263148;
-  --toast-bg: rgba(18, 59, 57, 0.96);
-  --toast-border: #1f7a70;
-  --toast-text: #b8f5ec;
+  --bg: #0b1623;
+  --surface: #122333;
+  --surface-2: #193248;
+  --surface-subtle: #0f1d2a;
+  --surface-tint: #123b3a;
+  --field-bg: #0e1d2c;
+  --topbar-bg: rgba(11, 22, 35, 0.94);
+  --hero-bg: #122333;
+  --text: #e8f0f5;
+  --text-soft: #bcd0db;
+  --muted: #9db2c0;
+  --navy: #07131f;
+  --navy-soft: #153b54;
+  --primary: #40c7ae;
+  --primary-dark: #2fa58f;
+  --primary-soft: #123b3a;
+  --primary-strong: #62e0c6;
+  --teal: #43cfb2;
+  --teal-soft: #123b3a;
+  --coral: #f17e77;
+  --coral-soft: #49272b;
+  --amber: #f1c66e;
+  --amber-soft: #44391e;
+  --border: #244258;
+  --border-strong: #355a72;
+  --border-subtle: #203a4f;
+  --toast-bg: rgba(18, 59, 58, 0.96);
+  --toast-border: #2d8f7e;
+  --toast-text: #c7f4e7;
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
   --shadow: 0 6px 20px rgba(0, 0, 0, 0.42), 0 1px 3px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 22px 46px rgba(0, 0, 0, 0.5);
@@ -277,6 +277,194 @@ html body {
 .auth-frame > .auth-gate {
   flex: 1;
   min-height: 0;
+}
+
+.consent-frame {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 0;
+  padding: clamp(24px, 5vw, 64px) 18px;
+  background:
+    radial-gradient(circle at 12% 14%, rgba(79, 181, 149, 0.14), transparent 32%),
+    radial-gradient(circle at 90% 86%, rgba(239, 102, 88, 0.12), transparent 34%),
+    var(--bg);
+}
+
+.consent-card {
+  width: min(680px, 100%);
+  padding: clamp(24px, 5vw, 48px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.consent-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: clamp(30px, 5vw, 48px);
+}
+
+.consent-brand img {
+  width: 42px;
+  height: 42px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.consent-brand strong,
+.consent-brand span {
+  display: block;
+}
+
+.consent-brand strong {
+  color: var(--text);
+  font-size: 1.05rem;
+  font-weight: 850;
+}
+
+.consent-brand em {
+  color: var(--primary);
+  font-style: normal;
+}
+
+.consent-brand span,
+.consent-intro,
+.consent-version {
+  color: var(--muted);
+}
+
+.consent-brand span {
+  margin-top: 2px;
+  font-size: 0.75rem;
+}
+
+.consent-card h1 {
+  max-width: 16ch;
+  margin: 8px 0 14px;
+  color: var(--text);
+  font-size: clamp(2rem, 5vw, 3.35rem);
+  letter-spacing: -0.055em;
+  line-height: 0.98;
+}
+
+.consent-intro {
+  max-width: 58ch;
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.65;
+}
+
+.consent-principles {
+  display: grid;
+  gap: 12px;
+  margin: 28px 0;
+}
+
+.consent-principles article {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 12px;
+  padding: 15px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+}
+
+.consent-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  color: var(--teal);
+  background: var(--teal-soft);
+  border-radius: 12px;
+}
+
+.consent-principles strong {
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.consent-principles p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.consent-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 15px;
+  color: var(--text);
+  background: var(--primary-soft);
+  border: 1px solid color-mix(in srgb, var(--primary) 30%, var(--border));
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.consent-check input {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--primary);
+}
+
+.consent-check span {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+}
+
+.consent-check span svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--primary);
+}
+
+.consent-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 20px;
+  margin: 18px 0 26px;
+}
+
+.consent-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--teal);
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.consent-links a:hover {
+  color: var(--text);
+}
+
+.consent-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.consent-actions .primary-btn:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.consent-version {
+  margin: 18px 0 0;
+  font-size: 0.7rem;
+  line-height: 1.45;
 }
 
 .app-toast {
@@ -909,6 +1097,126 @@ button:disabled {
   grid-column: 1 / -1;
 }
 
+.prescription-image-capture {
+  display: grid;
+  gap: 12px;
+  margin-top: 4px;
+  padding: 14px;
+  background: var(--surface-subtle);
+  border: 1px dashed var(--border-strong);
+  border-radius: 12px;
+}
+
+.prescription-image-capture.has-image {
+  border-style: solid;
+  border-color: var(--teal);
+}
+
+.prescription-image-capture-heading,
+.prescription-draft-preview,
+.prescription-capture-actions,
+.ocr-draft > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.prescription-image-capture-heading {
+  justify-content: space-between;
+}
+
+.prescription-image-capture-heading h3 {
+  margin: 3px 0 0;
+  font-size: 1rem;
+}
+
+.prescription-draft-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 74px;
+  padding: 12px;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+}
+
+.prescription-draft-empty > svg {
+  flex: 0 0 auto;
+  color: var(--teal);
+}
+
+.prescription-draft-empty strong,
+.prescription-draft-preview strong {
+  display: block;
+  color: var(--text);
+  font-size: 0.86rem;
+}
+
+.prescription-draft-empty p,
+.prescription-draft-preview p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.prescription-draft-preview {
+  align-items: flex-start;
+}
+
+.prescription-draft-preview img {
+  width: 78px;
+  height: 92px;
+  flex: 0 0 auto;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.prescription-capture-actions {
+  flex-wrap: wrap;
+}
+
+.ocr-status {
+  color: var(--muted);
+}
+
+.ocr-draft {
+  display: grid;
+  gap: 9px;
+  padding: 12px;
+  background: var(--teal-soft);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.ocr-draft > div {
+  justify-content: space-between;
+}
+
+.ocr-draft strong {
+  color: var(--text);
+  font-size: 0.82rem;
+}
+
+.ocr-draft span {
+  color: var(--teal);
+  font-size: 0.7rem;
+  font-weight: 760;
+}
+
+.ocr-draft p {
+  max-height: 150px;
+  margin: 0;
+  overflow: auto;
+  color: var(--text-soft);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
 .list-item,
 .alert-item,
 .settings-row {
@@ -1043,6 +1351,11 @@ button:disabled {
 }
 
 .status-badge.medium {
+  color: var(--amber);
+  background: var(--amber-soft);
+}
+
+.status-badge.warning {
   color: var(--amber);
   background: var(--amber-soft);
 }
@@ -1543,6 +1856,16 @@ textarea:focus {
   display: grid;
   place-items: start center;
   gap: 18px;
+}
+
+.emergency-card-selector {
+  width: min(100%, 720px);
+}
+
+.emergency-card-selector small {
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.45;
 }
 
 .sos-panel {
@@ -2300,7 +2623,7 @@ textarea:focus {
 .dashboard-dose-row time { color: var(--dash-muted); font-size: 0.78rem; font-weight: 750; }
 .dose-rail-icon { display: grid; width: 26px; height: 26px; color: #8793a3; background: #f0f3f6; border-radius: 50%; place-items: center; }
 .dashboard-dose-row.taken .dose-rail-icon { color: var(--dash-teal); background: var(--dash-teal-soft); }
-.dashboard-dose-row.missed .dose-rail-icon { color: var(--dash-coral); background: #fff0ed; }
+.dashboard-dose-row.missed .dose-rail-icon { color: var(--dash-coral); background: var(--coral-soft); }
 .dose-row-copy { display: grid; gap: 2px; }
 .dose-row-copy small { color: var(--dash-muted); }
 .dose-status-label { color: var(--dash-muted); font-size: 0.72rem; font-weight: 760; text-transform: capitalize; }
@@ -2412,6 +2735,732 @@ textarea:focus {
   .companion-intro h3 { font-size: 2.3rem; }
   .companion-dose-card { padding: 24px 20px; border-radius: 20px; }
 }
+
+/* Medication Ritual dashboard: a warm, medication-first command center. */
+.ritual-shell {
+  --ritual-ink: #102a43;
+  --ritual-muted: #627d98;
+  --ritual-page: #f4f7fa;
+  --ritual-surface: #ffffff;
+  --ritual-border: #d9e2ec;
+  --ritual-plum: #0b1f33;
+  --ritual-plum-soft: #143b52;
+  --ritual-mint: #0f9d8a;
+  --ritual-mint-soft: #e4f4f1;
+  --ritual-coral: #c2413a;
+  --ritual-coral-soft: #fdecec;
+  --ritual-oat: #eaf0f4;
+}
+
+.ritual-shell .main-panel,
+.ritual-shell .topbar { background: var(--ritual-page); }
+
+.ritual-shell .sidebar {
+  gap: 26px;
+  padding: 24px 14px 18px;
+  background: var(--ritual-plum);
+  border-right-color: #302b49;
+}
+
+.ritual-shell .brand {
+  padding: 5px 8px 24px;
+  border-bottom-color: rgba(255, 255, 255, 0.16);
+}
+
+.ritual-shell .brand strong {
+  font-size: 1.12rem;
+  letter-spacing: -0.02em;
+}
+
+.ritual-shell .brand strong em {
+  color: #f17a69;
+  font-style: normal;
+}
+
+.ritual-shell .brand small { color: #bbb4d1; font-size: 0.72rem; }
+
+.ritual-shell .nav-links { gap: 6px; }
+
+.ritual-shell .nav-links button {
+  min-height: 46px;
+  padding: 10px 14px;
+  color: #d4cee5;
+  border-radius: 14px;
+  font-size: 0.9rem;
+}
+
+.ritual-shell .nav-links button:hover,
+.ritual-shell .nav-links button.active {
+  color: #ffffff;
+  background: var(--ritual-plum-soft);
+  box-shadow: none;
+}
+
+.ritual-shell .nav-links button.active svg { color: #75d1b2; }
+
+.ritual-shell .sidebar-care-card {
+  display: grid;
+  gap: 14px;
+  margin-top: auto;
+  padding: 17px 14px 14px;
+  color: #f7f4fc;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 15px;
+}
+
+.ritual-shell .sidebar-care-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #f7f4fc;
+  font-size: 0.77rem;
+  font-weight: 750;
+}
+
+.ritual-shell .sidebar-care-heading i {
+  width: 7px;
+  height: 7px;
+  background: #9892ac;
+  border-radius: 50%;
+}
+
+.ritual-shell .sidebar-care-heading i.connected { background: #6ed0ad; }
+
+.ritual-shell .sidebar-care-person {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ritual-shell .sidebar-care-person > span {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  color: #2e2447;
+  background: #c08cde;
+  border-radius: 50%;
+  font-size: 0.9rem;
+  font-weight: 800;
+  place-items: center;
+}
+
+.ritual-shell .sidebar-care-person div { display: grid; min-width: 0; gap: 2px; }
+.ritual-shell .sidebar-care-person strong { overflow: hidden; font-size: 0.82rem; text-overflow: ellipsis; white-space: nowrap; }
+.ritual-shell .sidebar-care-person small { color: #bdb6d1; font-size: 0.72rem; }
+.ritual-shell .sidebar-care-card p { margin: 0; color: #bdb6d1; font-size: 0.76rem; line-height: 1.45; }
+
+.ritual-shell .sidebar-care-card button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0;
+  color: #d3c9f2;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: 0.76rem;
+  font-weight: 740;
+  text-align: left;
+}
+
+.ritual-shell .sidebar-care-card button:hover { color: #ffffff; }
+.ritual-shell .sidebar-care-card button span { margin-left: auto; font-size: 1.2rem; line-height: 1; }
+
+.ritual-shell .sidebar-status {
+  padding: 12px 11px;
+  color: #d4cee5;
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.ritual-shell .sidebar-status small { color: #aaa3c0; }
+
+.ritual-shell .topbar {
+  min-height: 74px;
+  padding-inline: clamp(24px, 4vw, 50px);
+  border-bottom-color: var(--ritual-border);
+}
+
+.ritual-shell .topbar-title { display: none; }
+
+.ritual-shell .ritual-topbar-date {
+  display: flex;
+  align-items: baseline;
+  flex: 0 0 auto;
+  gap: 15px;
+  color: var(--ritual-muted);
+  font-size: 0.87rem;
+  white-space: nowrap;
+}
+
+.ritual-shell .ritual-topbar-date strong {
+  color: var(--ritual-ink);
+  font-size: 1.02rem;
+  font-weight: 760;
+}
+
+.ritual-shell .topbar-actions { gap: 15px; }
+
+.ritual-shell .ritual-alert-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 13px;
+  min-width: 230px;
+  min-height: 52px;
+  padding: 10px 13px;
+  color: var(--ritual-ink);
+  background: var(--ritual-surface);
+  border: 1px solid var(--ritual-border);
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.ritual-shell .ritual-alert-button > svg:first-child { flex: 0 0 auto; }
+.ritual-shell .ritual-alert-copy {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ritual-ink);
+  font-size: 0.82rem;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ritual-shell .ritual-alert-count {
+  display: grid;
+  flex: 0 0 auto;
+  overflow: hidden;
+  width: 9px;
+  height: 9px;
+  font-size: 0;
+  color: #ffffff;
+  background: var(--ritual-coral);
+  border-radius: 50%;
+}
+
+.ritual-shell .ritual-alert-button > svg:last-child {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--ritual-ink);
+}
+
+.ritual-shell .ritual-alert-button:hover {
+  background: var(--ritual-oat);
+  border-color: #cfc8c5;
+}
+
+.ritual-shell .ritual-alert-button:focus-visible {
+  outline: 3px solid rgba(79, 181, 149, 0.28);
+  outline-offset: 2px;
+}
+
+.ritual-shell .ritual-ai-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 8px 12px;
+  color: var(--ritual-ink);
+  background: transparent;
+  border: 1px solid var(--ritual-border);
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 760;
+}
+
+.ritual-shell .ritual-ai-button:hover {
+  background: var(--ritual-mint-soft);
+  border-color: #b9dfd2;
+}
+
+.ritual-shell .ritual-ai-button:focus-visible {
+  outline: 3px solid rgba(79, 181, 149, 0.28);
+  outline-offset: 2px;
+}
+
+.ritual-shell .theme-toggle {
+  color: var(--ritual-muted);
+  background: transparent;
+  border-color: transparent;
+}
+
+.ritual-shell .sync-label { display: none; max-width: 180px; color: var(--ritual-muted); }
+
+.ritual-shell .page-content {
+  width: min(100%, 1500px);
+  padding: clamp(24px, 4vw, 48px) clamp(24px, 4vw, 50px);
+}
+
+.ritual-shell .page-content > * { color: var(--ritual-ink); }
+
+.ritual-dashboard {
+  display: grid;
+  gap: 22px;
+  width: 100%;
+  max-width: 1240px;
+  margin: 0;
+}
+
+.ritual-dashboard-heading,
+.ritual-panel-heading,
+.ritual-schedule-heading,
+.ritual-care-signal,
+.ritual-supply-row,
+.ritual-progress-row,
+.ritual-topbar-date {
+  display: flex;
+  align-items: center;
+}
+
+.ritual-dashboard-heading {
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.ritual-date,
+.ritual-dashboard-heading h2,
+.ritual-focus-content h3,
+.ritual-panel-heading h3,
+.ritual-schedule-heading h3,
+.ritual-care-signal p,
+.ritual-dose-detail,
+.ritual-confirm-help,
+.ritual-panel-empty {
+  margin: 0;
+}
+
+.ritual-date {
+  color: var(--ritual-muted);
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.ritual-dashboard-heading h2 {
+  margin-top: 4px;
+  color: var(--ritual-ink);
+  font-size: clamp(2.35rem, 4vw, 4.15rem);
+  font-weight: 520;
+  letter-spacing: -0.065em;
+  line-height: 1.02;
+}
+
+.ritual-patient-context {
+  display: grid;
+  gap: 3px;
+  min-width: 160px;
+  padding: 12px 16px;
+  background: var(--ritual-surface);
+  border: 1px solid var(--ritual-border);
+  border-radius: 13px;
+}
+
+.ritual-patient-context span,
+.ritual-patient-context strong { font-size: 0.78rem; }
+.ritual-patient-context span { color: var(--ritual-muted); }
+.ritual-patient-context strong { color: var(--ritual-ink); }
+
+.ritual-main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(290px, 0.72fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.ritual-focus-panel,
+.ritual-panel,
+.ritual-schedule-panel,
+.ritual-care-signal {
+  background: var(--ritual-surface);
+  border: 1px solid var(--ritual-border);
+  border-radius: 23px;
+  box-shadow: 0 12px 30px rgba(45, 33, 62, 0.045);
+}
+
+.ritual-focus-panel {
+  position: relative;
+  display: grid;
+  min-height: 490px;
+  overflow: hidden;
+  place-items: center;
+}
+
+.ritual-focus-orbit {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: min(690px, calc(100% - 18px));
+  height: auto;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  place-items: center;
+}
+
+.ritual-focus-orbit .MuiCircularProgress-root { position: absolute; width: 100% !important; height: 100% !important; }
+.ritual-focus-orbit .ritual-orbit-track { color: #e4e2df; }
+.ritual-focus-orbit .ritual-orbit-progress { color: var(--ritual-mint); }
+.ritual-orbit-dot { position: absolute; top: 0; width: 20px; height: 20px; background: #b8b7b4; border-radius: 50%; }
+
+.ritual-focus-content {
+  z-index: 1;
+  display: grid;
+  width: min(100%, 390px);
+  margin-left: 0;
+  padding: 50px 28px 44px 10px;
+  text-align: center;
+  justify-items: center;
+}
+
+.ritual-status-pill,
+.ritual-supply-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #0b6b63;
+  background: var(--ritual-mint-soft);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 760;
+}
+
+.ritual-status-pill { padding: 9px 15px; }
+.ritual-status-pill.missed { color: #a23c36; background: var(--ritual-coral-soft); }
+.ritual-next-time { margin: 25px 0 4px; color: var(--ritual-ink); font-size: 1.42rem; font-weight: 500; }
+.ritual-focus-content h3 { font-size: clamp(2rem, 3.6vw, 3rem); font-weight: 560; letter-spacing: -0.055em; }
+.ritual-focus-content h3,
+.ritual-dose-detail { max-width: 100%; overflow-wrap: anywhere; }
+.ritual-dose-detail { margin-top: 8px; color: var(--ritual-muted); font-size: 1.03rem; }
+
+.ritual-dose-instruction {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin: 26px 0 0;
+  color: var(--ritual-muted);
+  font-size: 0.94rem;
+}
+
+.ritual-dose-instruction svg { color: var(--ritual-mint); }
+
+.ritual-confirm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-width: 230px;
+  min-height: 58px;
+  margin-top: 25px;
+  padding: 12px 25px;
+  color: #ffffff;
+  background: var(--ritual-coral);
+  border: 1px solid var(--ritual-coral);
+  border-radius: 999px;
+  box-shadow: 0 9px 20px rgba(239, 102, 88, 0.2);
+  cursor: pointer;
+  font-weight: 780;
+}
+
+.ritual-confirm-btn:hover { background: #d95449; border-color: #d95449; transform: translateY(-1px); }
+.ritual-confirm-btn.secondary { color: var(--ritual-ink); background: var(--ritual-mint-soft); border-color: #c4e7db; box-shadow: none; }
+.ritual-confirm-help {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 340px);
+  margin: 16px auto 0;
+  padding: 0 12px;
+  color: var(--ritual-muted);
+  background: transparent;
+  border-radius: 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.ritual-side-rail { display: grid; gap: 18px; }
+.ritual-panel { padding: 22px; }
+.ritual-panel-heading { justify-content: space-between; gap: 15px; }
+.ritual-kicker { color: var(--ritual-muted); font-size: 0.7rem; font-weight: 780; letter-spacing: 0.1em; text-transform: uppercase; }
+.ritual-panel-heading h3 { margin-top: 4px; font-size: 1.25rem; font-weight: 650; letter-spacing: -0.035em; }
+
+.ritual-small-ring { position: relative; display: grid; width: 58px; height: 58px; color: var(--ritual-mint); place-items: center; }
+.ritual-small-ring .MuiCircularProgress-root { position: absolute; color: var(--ritual-mint); }
+.ritual-small-ring strong { color: var(--ritual-ink); font-size: 0.78rem; }
+
+.ritual-progress-list,
+.ritual-supply-list { display: grid; gap: 0; margin: 20px 0 0; padding: 0; list-style: none; }
+.ritual-progress-row { gap: 9px; min-width: 0; padding: 8px 0; }
+.ritual-progress-row + .ritual-progress-row { border-top: 1px solid #eeeae5; }
+.ritual-progress-marker { display: grid; width: 23px; height: 23px; color: #8d8b91; border: 1px solid #d8d7d5; border-radius: 50%; place-items: center; }
+.ritual-progress-row.taken .ritual-progress-marker { color: var(--ritual-mint); background: var(--ritual-mint-soft); border-color: transparent; }
+.ritual-progress-row.missed .ritual-progress-marker { color: var(--ritual-coral); background: var(--ritual-coral-soft); border-color: transparent; }
+.ritual-progress-row div { display: grid; grid-template-columns: 65px minmax(0, 1fr); gap: 6px; min-width: 0; align-items: baseline; flex: 1; }
+.ritual-progress-row strong { color: var(--ritual-muted); font-size: 0.78rem; white-space: nowrap; }
+.ritual-progress-row div span { overflow: hidden; color: var(--ritual-ink); font-size: 0.84rem; text-overflow: ellipsis; white-space: nowrap; }
+.ritual-progress-row small { color: var(--ritual-muted); font-size: 0.72rem; text-transform: capitalize; white-space: nowrap; }
+.ritual-progress-row.pending small { color: #338a72; font-weight: 760; }
+
+.ritual-supply-status { padding: 7px 9px; }
+.ritual-supply-status svg { color: var(--ritual-mint); }
+.ritual-supply-status.low { color: #a23c36; background: var(--ritual-coral-soft); }
+.ritual-supply-status.low svg { color: var(--ritual-coral); }
+.ritual-supply-row { gap: 9px; padding: 10px 0; }
+.ritual-supply-row + .ritual-supply-row { border-top: 1px solid #eeeae5; }
+.ritual-supply-icon { display: grid; width: 32px; height: 32px; color: #268d70; background: var(--ritual-mint-soft); border-radius: 50%; place-items: center; }
+.ritual-supply-icon.low { color: #a23c36; background: var(--ritual-coral-soft); }
+.ritual-supply-row div { display: grid; min-width: 0; flex: 1; gap: 2px; }
+.ritual-supply-row strong { overflow: hidden; color: var(--ritual-ink); font-size: 0.84rem; text-overflow: ellipsis; white-space: nowrap; }
+.ritual-supply-row small { color: var(--ritual-muted); font-size: 0.74rem; }
+.ritual-stock-ok,
+.ritual-stock-low { font-size: 0.77rem; font-weight: 760; white-space: nowrap; }
+.ritual-stock-ok { color: #0b6b63; }
+.ritual-stock-low { color: #a23c36; }
+.ritual-panel-empty { margin-top: 18px; color: var(--ritual-muted); font-size: 0.86rem; line-height: 1.5; }
+
+.ritual-panel-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: fit-content;
+  margin-top: 14px;
+  padding: 0;
+  color: var(--ritual-ink);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 780;
+}
+
+.ritual-panel-link:hover { color: var(--ritual-coral); }
+
+.ritual-schedule-panel { padding: 21px 24px 19px; }
+.ritual-schedule-heading { justify-content: space-between; gap: 16px; }
+.ritual-schedule-heading h3 { margin-top: 4px; font-size: 1.18rem; font-weight: 650; letter-spacing: -0.03em; }
+.ritual-schedule-track { position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 14px; margin-top: 23px; }
+.ritual-schedule-track::before { position: absolute; top: 34px; right: 8%; left: 8%; height: 2px; background: #e5e2de; content: ''; }
+.ritual-schedule-item { position: relative; display: grid; gap: 6px; min-width: 0; text-align: center; justify-items: center; }
+.ritual-schedule-item time { color: var(--ritual-muted); font-size: 0.75rem; font-weight: 700; }
+.ritual-schedule-marker { z-index: 1; display: grid; width: 28px; height: 28px; color: #8d8b91; background: var(--ritual-surface); border: 2px solid #d8d7d5; border-radius: 50%; place-items: center; }
+.ritual-schedule-item.taken .ritual-schedule-marker { color: #ffffff; background: var(--ritual-mint); border-color: var(--ritual-mint); }
+.ritual-schedule-item.missed .ritual-schedule-marker { color: #ffffff; background: var(--ritual-coral); border-color: var(--ritual-coral); }
+.ritual-schedule-item.pending .ritual-schedule-marker { color: var(--ritual-mint); border-color: var(--ritual-mint); }
+.ritual-schedule-item strong { overflow: hidden; max-width: 100%; color: var(--ritual-ink); font-size: 0.81rem; text-overflow: ellipsis; white-space: nowrap; }
+.ritual-schedule-item small { color: var(--ritual-muted); font-size: 0.73rem; text-transform: capitalize; }
+.ritual-schedule-item.pending small { color: #0b6b63; font-weight: 760; }
+
+.ritual-care-signal { gap: 13px; padding: 18px 22px; }
+.ritual-care-icon { display: grid; width: 43px; height: 43px; color: #0b6b63; background: var(--ritual-mint-soft); border-radius: 50%; place-items: center; }
+.ritual-care-signal div { min-width: 0; flex: 1; }
+.ritual-care-signal strong { font-size: 0.92rem; }
+.ritual-care-signal p { margin-top: 3px; color: var(--ritual-muted); font-size: 0.8rem; }
+.ritual-care-signal button { display: inline-flex; align-items: center; gap: 5px; padding: 6px 0; color: var(--ritual-ink); background: transparent; border: 0; cursor: pointer; font-size: 0.8rem; font-weight: 780; white-space: nowrap; }
+.ritual-care-signal button:hover { color: var(--ritual-coral); }
+
+@media (max-width: 1050px) {
+  .ritual-shell .sync-label { display: none; }
+  .ritual-shell .ritual-topbar-date { display: none; }
+  .ritual-shell .ritual-alert-button {
+    min-width: 38px;
+    width: 38px;
+    min-height: 38px;
+    height: 38px;
+    padding: 0;
+    justify-content: center;
+  }
+  .ritual-shell .ritual-alert-copy,
+  .ritual-shell .ritual-alert-button > svg:last-child { display: none; }
+  .ritual-shell .ritual-alert-button > svg:first-child { margin: 0; }
+  .ritual-shell .ritual-ai-button span { display: none; }
+  .ritual-shell .ritual-ai-button { width: 38px; min-height: 38px; height: 38px; padding: 0; justify-content: center; }
+  .ritual-shell .topbar-actions .secondary-btn,
+  .ritual-shell .topbar-actions .primary-btn {
+    width: 38px;
+    min-width: 38px;
+    min-height: 38px;
+    height: 38px;
+    padding: 0;
+    justify-content: center;
+    gap: 0;
+    font-size: 0;
+  }
+  .ritual-shell .topbar-actions .secondary-btn svg,
+  .ritual-shell .topbar-actions .primary-btn svg { margin: 0; }
+  .ritual-main-grid { grid-template-columns: minmax(0, 1fr); }
+  .ritual-side-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 780px) {
+  .ritual-shell .topbar-title { display: flex; width: auto; }
+  .ritual-shell .topbar-title > div { display: none; }
+  .ritual-shell .menu-toggle { display: inline-flex; color: var(--ritual-ink); background: var(--ritual-surface); border: 1px solid var(--ritual-border); }
+  .ritual-shell .topbar { flex-direction: row; align-items: center; justify-content: flex-end; }
+  .ritual-shell .topbar { padding-inline: 17px; }
+  .ritual-shell .ritual-topbar-date { display: none; }
+  .ritual-shell .topbar-actions { width: auto; margin-left: auto; justify-content: flex-end; }
+  .ritual-shell .topbar-actions .secondary-btn { display: none; }
+  .ritual-shell .ritual-alert-button { min-width: 38px; width: 38px; min-height: 38px; height: 38px; padding: 0; background: transparent; border-color: transparent; border-radius: 10px; }
+  .ritual-shell .ritual-alert-copy,
+  .ritual-shell .ritual-alert-button > svg:last-child { display: none; }
+  .ritual-shell .ritual-alert-count { position: absolute; top: 1px; right: 0; width: 9px; height: 9px; border: 2px solid var(--ritual-page); }
+  .ritual-shell .page-content { padding: 23px 15px 32px; }
+  .ritual-dashboard-heading { align-items: flex-start; flex-direction: column; }
+  .ritual-dashboard-heading h2 { font-size: clamp(2.1rem, 10vw, 3.25rem); }
+  .ritual-patient-context { width: 100%; }
+  .ritual-focus-panel { min-height: 510px; }
+  .ritual-focus-orbit { left: 50%; top: -88px; width: 390px; height: 390px; transform: translateX(-50%); }
+  .ritual-focus-orbit .MuiCircularProgress-root { width: 390px !important; height: 390px !important; }
+  .ritual-focus-content { align-self: end; width: 100%; margin: 0; padding: 180px 22px 35px; }
+  .ritual-side-rail { grid-template-columns: 1fr; }
+  .ritual-schedule-track { grid-template-columns: 1fr; gap: 0; margin-top: 14px; }
+  .ritual-schedule-track::before { top: 15px; bottom: 15px; left: 14px; width: 2px; height: auto; right: auto; }
+  .ritual-schedule-item { grid-template-columns: 70px 28px minmax(0, 1fr) auto; gap: 10px; min-height: 56px; text-align: left; justify-items: start; align-items: center; }
+  .ritual-schedule-item strong { grid-column: 3; grid-row: 1; }
+  .ritual-schedule-item small { grid-column: 4; grid-row: 1; }
+  .ritual-schedule-item time { grid-column: 1; grid-row: 1; }
+  .ritual-schedule-marker { grid-column: 2; grid-row: 1; }
+  .ritual-care-signal { align-items: flex-start; flex-wrap: wrap; }
+  .ritual-care-signal button { margin-left: 56px; }
+}
+
+@media (max-width: 560px) {
+  .ritual-shell .sidebar { padding-top: 17px; }
+  .ritual-shell .brand { padding-bottom: 18px; }
+  .ritual-shell .topbar { min-height: 64px; padding-inline: 14px; }
+  .ritual-shell .sidebar-care-card { display: none; }
+  .ritual-shell .sidebar-status { margin-top: auto; }
+  .ritual-focus-panel { min-height: 470px; border-radius: 20px; }
+  .ritual-focus-orbit { top: -74px; width: 320px; height: 320px; }
+  .ritual-focus-orbit .MuiCircularProgress-root { width: 320px !important; height: 320px !important; }
+  .ritual-orbit-dot { width: 15px; height: 15px; }
+  .ritual-focus-content { padding: 151px 15px 27px; }
+  .ritual-next-time { margin-top: 19px; font-size: 1.18rem; }
+  .ritual-focus-content h3 { font-size: 2.05rem; }
+  .ritual-dose-instruction { margin-top: 19px; }
+  .ritual-confirm-btn { width: 100%; min-width: 0; min-height: 54px; margin-top: 20px; }
+  .ritual-panel,
+  .ritual-schedule-panel { padding: 18px 16px; border-radius: 19px; }
+  .ritual-schedule-heading .ritual-panel-link { margin-top: 0; }
+  .ritual-care-signal { display: grid; grid-template-columns: 43px minmax(0, 1fr); padding: 16px; }
+  .ritual-care-signal button { grid-column: 2; margin-left: 0; justify-self: start; }
+}
+
+@media (max-width: 380px) {
+  .ritual-shell .topbar { padding-inline: 12px; }
+}
+
+/* Cloud integration surfaces ------------------------------------------------ */
+.auth-cloud-note,
+.auth-recovery,
+.turnstile-widget,
+.verification-panel,
+.caregiver-network-panel,
+.cloud-insight-panel {
+  margin-top: 16px;
+}
+
+.auth-cloud-note,
+.verification-panel p,
+.caregiver-network-panel > p,
+.caregiver-network-block > p,
+.cloud-insight-panel p {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.auth-recovery {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-subtle);
+}
+
+.auth-recovery .section-kicker { margin: 0; }
+.turnstile-widget { min-height: 66px; }
+.verification-panel.verified { border-color: var(--toast-border); background: var(--surface-tint); }
+.verification-panel.verified h2 { color: var(--toast-text); }
+
+.caregiver-network-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.caregiver-network-block {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface-subtle);
+}
+
+.caregiver-network-block .section-header { margin-bottom: 12px; }
+.caregiver-network-block h3 { margin: 0; font-size: 1rem; color: var(--text); }
+.compact-list { gap: 8px; }
+.compact-list .list-item { padding: 12px; }
+.caregiver-link-card { padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.caregiver-link-heading { display: flex; align-items: center; gap: 10px; }
+.caregiver-link-heading > div:nth-child(2) { flex: 1; min-width: 0; }
+.caregiver-link-heading p { margin: 3px 0 0; color: var(--muted); font-size: .78rem; }
+.permission-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; margin-top: 12px; color: var(--text-soft); font-size: .78rem; }
+.permission-grid label { display: flex; align-items: center; gap: 7px; }
+.invite-code { display: inline-flex; align-items: center; padding: 5px 8px; border-radius: 8px; color: var(--toast-text); background: var(--surface-tint); font-size: .72rem; letter-spacing: .08em; }
+.caregiver-insight-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 14px; }
+.insight-card { display: grid; gap: 5px; min-width: 0; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--primary); }
+.insight-card strong { color: var(--text); font-size: .8rem; }
+.insight-card small { color: var(--muted); line-height: 1.35; }
+.field-action-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.field-action-row small { color: var(--muted); line-height: 1.4; }
+.section-assistant-disclaimer { display: block; margin-top: 8px; color: var(--muted); font-size: .68rem; line-height: 1.45; }
+
+:root[data-theme="dark"] .auth-recovery,
+:root[data-theme="dark"] .caregiver-network-block { background: var(--surface-subtle); }
+
+@media (max-width: 760px) {
+  .caregiver-network-grid { grid-template-columns: 1fr; }
+  .caregiver-insight-grid { grid-template-columns: 1fr; }
+  .field-action-row { align-items: flex-start; flex-direction: column; }
+}
+
+:root[data-theme="dark"] .ritual-shell {
+  --ritual-ink: #e8f0f5;
+  --ritual-muted: #9db2c0;
+  --ritual-page: #0b1623;
+  --ritual-surface: #122333;
+  --ritual-border: #244258;
+  --ritual-plum: #07131f;
+  --ritual-plum-soft: #153b54;
+  --ritual-mint: #43cfb2;
+  --ritual-mint-soft: #123b3a;
+  --ritual-coral: #f17e77;
+  --ritual-coral-soft: #49272b;
+}
+
+:root[data-theme="dark"] .ritual-shell .topbar,
+:root[data-theme="dark"] .ritual-shell .main-panel { background: var(--ritual-page); }
+:root[data-theme="dark"] .ritual-shell .ritual-alert-button { color: var(--ritual-ink); }
+:root[data-theme="dark"] .ritual-shell .ritual-alert-button > .ritual-alert-count { border-color: var(--ritual-page); }
+:root[data-theme="dark"] .ritual-orbit-track { color: #29475c; background: transparent; }
+:root[data-theme="dark"] .ritual-schedule-track::before { color: #29475c; background: #29475c; }
+:root[data-theme="dark"] .ritual-schedule-marker { background: var(--ritual-surface); }
+:root[data-theme="dark"] .ritual-status-pill,
+:root[data-theme="dark"] .ritual-supply-status,
+:root[data-theme="dark"] .ritual-stock-ok,
+:root[data-theme="dark"] .ritual-schedule-item.pending small { color: var(--ritual-mint); }
+:root[data-theme="dark"] .ritual-status-pill.missed,
+:root[data-theme="dark"] .ritual-supply-status.low,
+:root[data-theme="dark"] .ritual-stock-low,
+:root[data-theme="dark"] .ritual-supply-icon.low { color: var(--ritual-coral); }
+:root[data-theme="dark"] .ritual-care-icon { color: var(--ritual-mint); }
+:root[data-theme="dark"] .ritual-progress-row + .ritual-progress-row,
+:root[data-theme="dark"] .ritual-supply-row + .ritual-supply-row { border-color: var(--ritual-border); }
+:root[data-theme="dark"] .ritual-panel-link { color: var(--ritual-ink); }
 
 /* Local guided data-entry assistant */
 .guided-assistant {
@@ -2913,4 +3962,606 @@ textarea:focus {
 
 @media (prefers-reduced-motion: reduce) {
   .section-assistant-progress span { transition: none; }
+}
+
+/* Final product pass: Medication Ritual palette, spacing rhythm, and safe
+   responsive defaults. These rules intentionally sit last so legacy page
+   variants inherit the same visual language without disturbing the scoped
+   Ritual dashboard tokens above. */
+html,
+body {
+  overflow-x: hidden;
+}
+
+.page-content {
+  padding: clamp(16px, 2.5vw, 36px);
+}
+
+.page-content.with-section-assistant {
+  padding-bottom: max(clamp(28px, 3vw, 44px), calc(96px + env(safe-area-inset-bottom)));
+}
+
+.page-content > *,
+.content-grid > *,
+.list-item,
+.alert-item,
+.settings-row,
+.prescription-record,
+.form-panel {
+  min-width: 0;
+}
+
+.content-grid {
+  gap: clamp(16px, 2vw, 24px);
+}
+
+.panel-card,
+.auth-card {
+  padding: clamp(18px, 2.3vw, 32px);
+}
+
+.section-header {
+  margin-bottom: clamp(16px, 2vw, 22px);
+}
+
+.topbar {
+  padding-inline: clamp(16px, 2.5vw, 32px);
+}
+
+.list-item-controls,
+.record-actions,
+.prescription-actions {
+  min-width: 0;
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+
+.list-item h3,
+.list-item p,
+.alert-item strong,
+.alert-item p,
+.settings-row strong,
+.settings-row p,
+.prescription-record strong,
+.prescription-record p {
+  overflow-wrap: anywhere;
+}
+
+.home-hero-copy {
+  padding: clamp(24px, 4vw, 56px);
+}
+
+/* The guided assistants share the same calm plum, coral, and mint language
+   as the primary dashboard. */
+.guided-assistant {
+  color: var(--text);
+  background: var(--surface);
+  border-color: var(--border);
+  box-shadow: var(--shadow);
+}
+
+.guided-assistant::before {
+  background: var(--teal);
+}
+
+.guided-assistant-avatar {
+  background: var(--navy);
+  box-shadow: var(--shadow-sm);
+}
+
+.assistant-eyebrow {
+  color: var(--teal);
+}
+
+.assistant-toggle,
+.assistant-voice:not(.playing) {
+  color: var(--primary-dark);
+  background: var(--primary-soft);
+  border-color: var(--border-strong);
+}
+
+.assistant-progress-track {
+  background: var(--surface-tint);
+}
+
+.assistant-progress-track span {
+  background: var(--teal);
+}
+
+.assistant-question {
+  background: var(--surface-subtle);
+  border-color: var(--border);
+}
+
+.assistant-question-heading > div > span,
+.assistant-progress-row,
+.assistant-fields label > span,
+.assistant-review dt {
+  color: var(--muted);
+}
+
+.assistant-voice.playing {
+  color: var(--navy);
+  background: var(--teal);
+  border-color: var(--teal);
+}
+
+.assistant-fields input,
+.assistant-fields select,
+.assistant-fields textarea,
+.assistant-back,
+.assistant-choice-grid button,
+.assistant-review > div {
+  color: var(--text);
+  background: var(--field-bg);
+  border-color: var(--border);
+}
+
+.assistant-fields input:focus,
+.assistant-fields select:focus,
+.assistant-fields textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(239, 102, 88, 0.16);
+}
+
+.assistant-choice-grid button.selected {
+  color: var(--primary-dark);
+  background: var(--primary-soft);
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.assistant-choice-grid small,
+.assistant-review dd,
+.assistant-privacy {
+  color: var(--text-soft);
+}
+
+.assistant-review,
+.assistant-review > div + div {
+  border-color: var(--border);
+}
+
+.assistant-question .assistant-hint {
+  color: var(--amber);
+  background: var(--amber-soft);
+}
+
+.assistant-next {
+  color: #ffffff;
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
+/* Persistent section guide */
+.section-assistant {
+  color: var(--text);
+  background: var(--surface);
+  border-color: var(--border);
+  box-shadow: var(--shadow-lg);
+}
+
+.section-assistant-header {
+  background: var(--navy);
+}
+
+.section-assistant-toolbar {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.section-assistant-toolbar label {
+  min-width: 0;
+}
+
+.section-assistant-toolbar select,
+.section-assistant-toolbar button {
+  color: var(--text-soft);
+  background: var(--surface-subtle);
+  border-color: var(--border);
+}
+
+.section-assistant-toolbar select {
+  max-width: 100%;
+}
+
+.assistant-primary-voice {
+  color: var(--teal);
+  font-size: 0.64rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.section-assistant-toolbar button.speaking {
+  color: var(--navy);
+  background: var(--teal);
+  border-color: var(--teal);
+}
+
+.section-assistant-progress {
+  background: var(--surface-tint);
+}
+
+.section-assistant-progress span {
+  background: var(--teal);
+}
+
+.section-assistant-tip-list > div {
+  color: var(--text-soft);
+}
+
+.section-assistant-tip-list svg {
+  color: var(--teal);
+}
+
+.section-assistant-recommendation {
+  color: var(--text);
+  background: var(--primary-soft);
+  border-color: var(--border);
+}
+
+.section-assistant-recommendation small,
+.section-assistant-recommendation p,
+.section-assistant-help > small,
+.section-assistant-auto {
+  color: var(--muted);
+}
+
+.section-assistant-help {
+  border-top-color: var(--border);
+}
+
+.section-assistant-help > strong {
+  color: var(--text);
+}
+
+.section-assistant-help input,
+.assistant-feedback button {
+  color: var(--text);
+  background: var(--field-bg);
+  border-color: var(--border-strong);
+}
+
+.section-assistant-help input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(239, 102, 88, 0.16);
+}
+
+.section-assistant-help form button {
+  background: var(--primary-dark);
+}
+
+.section-assistant-body .section-assistant-answer {
+  color: var(--text-soft);
+  background: var(--surface-subtle);
+  border-left-color: var(--primary);
+}
+
+.section-assistant-answer > span {
+  color: var(--teal);
+}
+
+.assistant-feedback {
+  border-top-color: var(--border);
+}
+
+.assistant-feedback > span {
+  color: var(--muted);
+}
+
+.section-assistant-body .section-assistant-safety {
+  color: var(--coral);
+}
+
+.section-assistant-launcher {
+  background: var(--primary-dark);
+  box-shadow: var(--shadow-lg);
+}
+
+@media (max-width: 900px) {
+  .topbar {
+    gap: 10px;
+  }
+
+  .topbar-title,
+  .topbar-actions {
+    min-width: 0;
+  }
+
+  .content-grid.form-layout,
+  .content-grid.wide-primary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .form-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 760px) {
+  .topbar {
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-between;
+    min-height: 64px;
+    padding-inline: 16px;
+  }
+
+  .topbar-title {
+    width: auto;
+    flex: 0 0 auto;
+  }
+
+  .topbar-title > div {
+    display: block;
+  }
+
+  .topbar-title .eyebrow {
+    display: none;
+  }
+
+  .topbar-title h1 {
+    font-size: 1.16rem;
+  }
+
+  .topbar-actions {
+    width: auto;
+    margin-left: auto;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+
+  .sync-label {
+    display: none;
+  }
+
+  .topbar-actions .secondary-btn,
+  .topbar-actions .primary-btn {
+    flex: 0 0 auto;
+    width: 38px;
+    min-width: 38px;
+    min-height: 38px;
+    height: 38px;
+    padding: 0;
+    border-radius: 10px;
+    font-size: 0;
+    justify-content: center;
+  }
+
+  .page-content {
+    padding: 18px 16px 28px;
+  }
+
+  .page-content.with-section-assistant {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+
+  .panel-card,
+  .auth-card {
+    padding: 20px 16px;
+  }
+
+  .content-grid {
+    gap: 16px;
+  }
+
+  .list-item,
+  .alert-item,
+  .settings-row {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 560px) {
+  .page-content {
+    padding: 14px 12px calc(24px + env(safe-area-inset-bottom));
+  }
+
+  .page-content.with-section-assistant {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+
+  .panel-card,
+  .auth-card {
+    padding: 17px 14px;
+    border-radius: 14px;
+  }
+
+  .section-header {
+    margin-bottom: 16px;
+  }
+
+  .list-item,
+  .alert-item,
+  .settings-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .list-item-controls,
+  .record-actions,
+  .prescription-actions {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .prescription-record {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 10px;
+  }
+
+  .prescription-actions {
+    gap: 6px;
+  }
+
+  .dose-time-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .topbar-actions {
+    gap: 8px;
+  }
+
+  .topbar-actions .secondary-btn,
+  .topbar-actions .primary-btn {
+    flex: 0 0 auto;
+  }
+
+  .section-assistant {
+    right: 10px;
+    bottom: max(10px, env(safe-area-inset-bottom));
+    width: calc(100vw - 20px);
+    max-height: min(760px, calc(100dvh - 24px));
+  }
+
+  .section-assistant-body {
+    padding: 14px;
+  }
+
+  .section-assistant-toolbar {
+    align-items: stretch;
+  }
+
+  .section-assistant-toolbar label {
+    flex: 1 1 140px;
+  }
+
+  .section-assistant-toolbar select {
+    width: 100%;
+  }
+
+  .assistant-primary-voice {
+    align-self: center;
+    margin-left: 0;
+  }
+
+  .section-assistant-toolbar button {
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 380px) {
+  .page-content {
+    padding-inline: 10px;
+  }
+
+  .topbar {
+    padding-inline: 12px;
+  }
+
+  .topbar-actions .secondary-btn,
+  .topbar-actions .primary-btn { width: 38px; }
+
+  .sync-label {
+    display: none;
+  }
+
+  .section-assistant-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .assistant-primary-voice {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .section-assistant-toolbar button {
+    justify-content: center;
+  }
+}
+
+/* Keep the completion orbit inside its focus card at every breakpoint. The
+   original orbit was sized from width alone, so its top and bottom were
+   clipped on the desktop card. */
+.ritual-focus-orbit {
+  top: 44%;
+  left: 50%;
+  width: min(410px, calc(100% - 24px));
+  height: auto;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  animation: ritual-orbit-enter 850ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: center;
+}
+
+.ritual-focus-orbit .MuiCircularProgress-root {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.routine-complete .ritual-orbit-progress {
+  animation: ritual-orbit-breathe 2600ms ease-in-out 850ms infinite;
+  transform-origin: center;
+}
+
+@keyframes ritual-orbit-enter {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+  68% { opacity: 1; transform: translate(-50%, -50%) scale(1.025); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes ritual-orbit-breathe {
+  0%, 100% { filter: drop-shadow(0 0 0 rgba(79, 181, 151, 0)); }
+  50% { filter: drop-shadow(0 0 8px rgba(79, 181, 151, 0.28)); }
+}
+
+@media (max-width: 1050px) {
+  .ritual-focus-orbit {
+    top: 50%;
+    width: min(690px, calc(100% - 18px));
+  }
+}
+
+@media (max-width: 780px) {
+  .ritual-focus-orbit {
+    width: min(360px, calc(100% - 24px));
+  }
+}
+
+@media (max-width: 560px) {
+  .section-assistant-launcher {
+    right: 14px;
+    bottom: max(14px, env(safe-area-inset-bottom));
+    width: 46px;
+    min-width: 46px;
+    height: 46px;
+    min-height: 46px;
+    padding: 0;
+    border-radius: 14px;
+    justify-content: center;
+  }
+
+  .section-assistant-launcher span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .ritual-focus-panel {
+    min-height: 500px;
+  }
+
+  .ritual-focus-orbit {
+    top: 3%;
+    width: min(250px, calc(100% - 36px));
+  }
+
+  .ritual-focus-content {
+    padding: 142px 15px 27px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ritual-focus-orbit,
+  .routine-complete .ritual-orbit-progress {
+    animation: none;
+  }
 }

@@ -1,9 +1,23 @@
 import { CheckCircle2, HeartPulse, Phone, ShieldPlus, Siren } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { useEmergencySos } from '../lib/cloud/useEmergencySos'
+import { getDefaultEmergencyCardMemberId, getEmergencyCardMedicines, selectEmergencyCardMember } from '../lib/emergencyCard'
 
 function EmergencyCardPage({ members, medicines, user }) {
-  const sos = useEmergencySos({ user, members })
-  const primaryMember = members[0]
+  const safeMembers = useMemo(() => (Array.isArray(members) ? members : []), [members])
+  const safeMedicines = useMemo(() => (Array.isArray(medicines) ? medicines : []), [medicines])
+  const sos = useEmergencySos({ user, members: safeMembers })
+  const [selectedMemberId, setSelectedMemberId] = useState(() => getDefaultEmergencyCardMemberId(safeMembers) || '')
+
+  useEffect(() => {
+    setSelectedMemberId((current) => {
+      if (current && safeMembers.some((member) => String(member.id) === String(current))) return current
+      return getDefaultEmergencyCardMemberId(safeMembers) || ''
+    })
+  }, [safeMembers])
+
+  const primaryMember = selectEmergencyCardMember(safeMembers, selectedMemberId)
+  const memberMedicines = getEmergencyCardMedicines(safeMedicines, primaryMember?.id)
   const contactName = sos.contact?.name || 'your primary contact'
 
   return (
@@ -90,13 +104,31 @@ function EmergencyCardPage({ members, medicines, user }) {
         )}
       </article>
 
+      {safeMembers.length > 1 ? (
+        <section className="panel-card emergency-card-selector" aria-labelledby="emergency-card-member-label">
+          <label className="field">
+            <span id="emergency-card-member-label">Emergency card for</span>
+            <select
+              aria-describedby="emergency-card-member-help"
+              aria-label="Emergency card for"
+              onChange={(event) => setSelectedMemberId(event.target.value)}
+              value={selectedMemberId}
+            >
+              <option value="">Choose a family member</option>
+              {safeMembers.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}
+            </select>
+            <small id="emergency-card-member-help">Select the person whose health details and medicines should appear on this card.</small>
+          </label>
+        </section>
+      ) : null}
+
       {primaryMember ? (
         <article className="emergency-card">
           <header><div><p>Emergency health card</p><h2>{primaryMember.name}</h2></div><ShieldPlus size={30} /></header>
-          <div className="emergency-grid"><div><span>Blood group</span><strong>{primaryMember.bloodGroup || 'Unknown'}</strong></div><div><span>Allergies</span><strong>{primaryMember.allergies || 'None recorded'}</strong></div><div className="full"><span>Current medicines</span><strong>{medicines.slice(0, 5).map((item) => item.name).join(', ') || 'None recorded'}</strong></div></div>
+          <div className="emergency-grid"><div><span>Blood group</span><strong>{primaryMember.bloodGroup || 'Unknown'}</strong></div><div><span>Allergies</span><strong>{primaryMember.allergies || 'None recorded'}</strong></div><div className="full"><span>Current medicines</span><strong>{memberMedicines.slice(0, 5).map((item) => item.name).join(', ') || 'None recorded'}</strong></div></div>
           <footer><HeartPulse size={18} /><span>For emergency reference only</span></footer>
         </article>
-      ) : <div className="panel-card empty-state"><ShieldPlus size={22} /><div><strong>No emergency card yet</strong><p>Add a family profile to create one.</p></div></div>}
+      ) : <div className="panel-card empty-state"><ShieldPlus size={22} /><div><strong>{safeMembers.length > 1 ? 'Choose a person for the emergency card' : 'No emergency card yet'}</strong><p>{safeMembers.length > 1 ? 'The card stays hidden until you select the correct family member.' : 'Add a family profile to create one.'}</p></div></div>}
     </section>
   )
 }

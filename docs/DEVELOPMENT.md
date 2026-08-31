@@ -14,7 +14,7 @@ For Android development:
 - Android platform-tools/ADB for device testing
 - PowerShell on Windows for the repository's build helpers
 
-No `.env` file, backend, Firebase project, database, API key, or paid service is required. maybe in future
+No `.env` file or cloud account is required for offline development. When testing the optional cloud tier, set `VITE_MEDLOOP_API_URL` to a deployed HTTPS gateway and follow the backend setup documentation; never place credentials or API keys in the client bundle.
 
 ## Install and run
 

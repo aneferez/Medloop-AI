@@ -12,25 +12,26 @@
     <main>
       <div class="brand"><img alt="MedLoop AI" src="/medloop-logo-192.png" /><div><strong>MedLoop AI</strong><span>Medicine reminders and family care coordination</span></div></div>
       <h1>Privacy policy</h1>
-      <p class="effective">Effective 4 July 2026</p>
+      <p class="effective">Beta notice · Effective 30 August 2026</p>
+      <p class="notice">This notice describes the current cloud-enabled beta and requires product and legal approval before public release.</p>
 
       <h2>Data MedLoop handles</h2>
-      <p>MedLoop stores account details, medicine routines, dose logs, family contacts, appointments, prescription notes, profile photos, prescription images, and settings on this device. Device reminders are scheduled locally.</p>
+      <p>MedLoop stores account details, medicine routines, dose logs, family contacts, appointments, prescription notes, profile photos, prescription images, and settings on this device. When cloud sync is enabled, these records may also be sent to the MedLoop backend. Prescription images may be mirrored to cloud file storage. Push registration uses a device token so generic reminders can be delivered.</p>
 
       <h2>How information is used</h2>
-      <p>Information is used to unlock the local account, schedule medicine reminders, show adherence history, and prepare user-reviewed SMS or WhatsApp messages. MedLoop does not sell personal information.</p>
+      <p>Information is used to provide account access, medicine reminders, adherence history, family care coordination, emergency alerts, prescription storage, and synchronization between linked devices. MedLoop does not sell personal information.</p>
 
       <h2>Cloud services</h2>
-      <p>This local-only build does not use Firebase, Firestore, Cloud Functions, hosted AI, analytics, crash reporting, App Check, Remote Config, Hosting, or cloud storage. Local-only mode cannot send email verification messages, password-reset links, or sign in with Google.</p>
+      <p>Cloud sync uses the MedLoop Cloudflare Worker, D1 database, and R2 file storage. Firebase Cloud Messaging may deliver generic notification events. The current in-app help guide uses approved local help content and does not send questions to a hosted AI service. OCR and a personal AI assistant require separate consent and final service disclosures before release.</p>
 
       <h2>Family messages</h2>
       <p>Missed-dose and refill messages are prepared locally and opened in the device's SMS application or WhatsApp for review. MedLoop does not silently send messages. WhatsApp is a separate service with its own privacy terms.</p>
 
       <h2>Retention, choices, and deletion</h2>
-      <p>Local records remain until edited or deleted. Users can disable reminders, SMS drafts, and WhatsApp messages. Account deletion removes the local MedLoop account and records on the current device. See the <a href="/account-deletion">account deletion instructions</a>.</p>
+      <p>Local records remain until edited or deleted. Users can disable reminders and message preferences. Linked devices can retain their own local copies. Cloud retention and complete remote account deletion are being finalized in the beta backend; do not treat local deletion as remote deletion until the app displays a confirmed cloud deletion receipt. See the <a href="/account-deletion">account deletion instructions</a>.</p>
 
       <h2>Security</h2>
-      <p>MedLoop keeps this build's data on the device and disables Android cloud backup. No system can guarantee absolute security, so users should enter only the information needed for medicine coordination.</p>
+      <p>Android cloud backup is disabled for MedLoop app data. Health records sent to cloud services are protected by authenticated access and backend authorization. No system can guarantee absolute security, so users should enter only the information needed for medicine coordination.</p>
 
       <h2>Medical disclaimer</h2>
       <p class="notice">MedLoop is a reminder and organization tool. It does not provide diagnosis, medical advice, emergency monitoring, or treatment recommendations. Always follow the original prescription and confirm unclear instructions with a qualified clinician or pharmacist.</p>

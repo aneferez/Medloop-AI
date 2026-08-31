@@ -48,17 +48,30 @@ async function request(path, { method = 'GET', body, token, signal } = {}) {
 }
 
 export const cloudApi = {
-  // Foundation (Module A)
+  // Server identity (Module A)
   health: () => request('/health'),
   meta: () => request('/meta'),
+  auth: {
+    signup: (payload) => request('/auth/signup', { method: 'POST', body: payload }),
+    login: (payload) => request('/auth/login', { method: 'POST', body: payload }),
+    verifyEmail: (token) => request('/auth/verify-email', { method: 'POST', body: { token } }),
+    resendVerification: (token) => request('/auth/resend-verification', { method: 'POST', token }),
+    requestPasswordReset: (email) => request('/auth/password/reset-request', { method: 'POST', body: { email } }),
+    resetPassword: (token, password) => request('/auth/password/reset', { method: 'POST', body: { token, password } }),
+    session: (token) => request('/auth/session', { token }),
+  },
   registerDevice: (payload) => request('/auth/register', { method: 'POST', body: payload }),
-  session: (token) => request('/auth/session', { token }),
   // Device pairing — the only way to join an existing account.
   createLinkCode: (token) => request('/auth/link-code', { method: 'POST', token }),
   redeemLinkCode: (payload) => request('/auth/link-code/redeem', { method: 'POST', body: payload }),
   linkDevice: (token, payload) => request('/auth/link-device', { method: 'POST', token, body: payload }),
   updateDeviceToken: (token, fcmToken) => request('/auth/device', { method: 'PATCH', token, body: { fcmToken } }),
   revokeDevice: (token) => request('/auth/revoke', { method: 'POST', token }),
+
+  account: {
+    export: (token) => request('/account/export', { token }),
+    remove: (token, password) => request('/account', { method: 'DELETE', token, body: { password } }),
+  },
 
   // Family management (Module D)
   family: {
@@ -70,6 +83,19 @@ export const cloudApi = {
     setPrimary: (token, id) => request(`/family/${encodeURIComponent(id)}/primary`, { method: 'POST', token }),
     primaryContact: (token) => request('/family/primary', { token }),
     alertTarget: (token) => request('/family/alert-target', { token }),
+    invite: (token, id, payload = {}) => request(`/family/${encodeURIComponent(id)}/invite`, { method: 'POST', token, body: payload }),
+  },
+
+  caregivers: {
+    list: (token) => request('/caregivers', { token }),
+    accept: (token, code) => request('/caregiver/accept', { method: 'POST', token, body: { code } }),
+    patients: (token) => request('/caregiver/patients', { token }),
+    inventory: (token) => request('/caregiver/inventory', { token }),
+    update: (token, linkId, changes) => request(`/caregivers/${encodeURIComponent(linkId)}`, { method: 'PATCH', token, body: changes }),
+    revoke: (token, linkId) => request(`/caregivers/${encodeURIComponent(linkId)}/revoke`, { method: 'POST', token }),
+    patientInventory: (token, patientId) => request(`/patients/${encodeURIComponent(patientId)}/inventory`, { token }),
+    patientDoses: (token, patientId, date) => request(`/patients/${encodeURIComponent(patientId)}/doses${date ? `?date=${encodeURIComponent(date)}` : ''}`, { token }),
+    patientAdherence: (token, patientId, range = 30) => request(`/patients/${encodeURIComponent(patientId)}/adherence?range=${encodeURIComponent(range)}`, { token }),
   },
 
   // Medicine & stock engine (Module B)
@@ -86,6 +112,7 @@ export const cloudApi = {
   stock: {
     summary: (token) => request('/stock/summary', { token }),
   },
+  adherence: (token, range = 30) => request(`/adherence?range=${encodeURIComponent(range)}`, { token }),
 
   // Alert & notification service (Module C)
   alerts: {
@@ -96,6 +123,10 @@ export const cloudApi = {
   },
   notifications: {
     history: (token, filters = {}) => request(`/notifications${toQuery(filters)}`, { token }),
+  },
+  ai: {
+    assistant: (token, question, context = '') => request('/ai/assistant', { method: 'POST', token, body: { question, context } }),
+    simplify: (token, text) => request('/ai/simplify', { method: 'POST', token, body: { text } }),
   },
   settings: {
     get: (token) => request('/settings', { token }),

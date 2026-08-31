@@ -2,7 +2,7 @@ export const pages = [
   { id: 'home', path: '/', label: 'Home' },
   { id: 'dashboard', path: '/dashboard', label: 'Dashboard' },
   { id: 'family', path: '/family', label: 'Family' },
-  { id: 'medicines', path: '/medicines', label: 'Medicines' },
+  { id: 'medicines', path: '/medicines', label: 'Medications' },
   { id: 'prescriptions', path: '/prescriptions', label: 'Prescriptions' },
   { id: 'alerts', path: '/alerts', label: 'Alerts' },
   { id: 'appointments', path: '/appointments', label: 'Appointments' },

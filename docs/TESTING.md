@@ -25,7 +25,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-android-device.
 
 ## Automated test inventory
 
-The Vitest suite currently contains 16 tests across eight files.
+The Vitest suite is split across client unit/integration tests and Worker contract tests. The exact file and assertion count is produced by `npm test`; do not use a stale hand-maintained count as a release gate.
 
 | Suite | Coverage |
 | --- | --- |
@@ -37,6 +37,9 @@ The Vitest suite currently contains 16 tests across eight files.
 | `backup.test.js` | Authenticated encrypted round trip and image round trip |
 | `dashboard.test.js` | Chronological dose rail, next dose, dashboard variant persistence/fallback |
 | `guidedAssistant.test.js` | Required fields, immutable updates/toggles, bounded progress |
+| `cloudConfig.test.js` | HTTPS-only production gateway validation and local development allowance |
+| `cloudSession.test.js` | Cloud device-session revocation and local credential cleanup |
+| `consent.test.js` | Versioned privacy/medical-safety acknowledgement gate |
 
 Tests mock or emulate browser/native boundaries where required. Passing tests do not prove real Android permission prompts, exact-alarm timing, camera behavior, share sheets, or vendor-specific battery management.
 
@@ -68,9 +71,10 @@ The helper script verifies exactly one authorized non-emulator device, installs 
 7. Capture from camera and choose from gallery; force-stop/relaunch and verify images.
 8. Export a backup, change/delete records, restore via Android picker, and verify records/images.
 9. Trigger an SMS/WhatsApp draft and verify no message is sent until the user taps Send.
-10. Enter a wrong deletion password, then delete with the correct password and confirm records/media no longer load.
-11. Check phone, tablet/large-window, portrait, landscape, light/dark system setting, font scaling, and accessibility service behavior.
-12. Review `adb logcat` for fatal errors, sensitive-data logs, repeated exceptions, or plugin failures.
+10. Create a fresh account or clear only the test account state; verify consent appears before medication data, Continue is disabled until checked, and accepted consent persists after restart.
+11. Enter a wrong deletion password, then delete with the correct password and confirm records/media no longer load.
+12. Check phone, tablet/large-window, portrait, landscape, light/dark system setting, font scaling, and accessibility service behavior.
+13. Review `adb logcat` for fatal errors, sensitive-data logs, repeated exceptions, or plugin failures.
 
 ## Release acceptance gates
 

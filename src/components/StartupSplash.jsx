@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Box, LinearProgress, Stack, Typography } from '@mui/material'
 
-const DEFAULT_DURATION_MS = 5_000
+const DEFAULT_DURATION_MS = 1_200
 
 function StartupSplash({ children, durationMs = DEFAULT_DURATION_MS }) {
   const [visible, setVisible] = useState(true)
@@ -26,7 +26,7 @@ function StartupSplash({ children, durationMs = DEFAULT_DURATION_MS }) {
             placeItems: 'center',
             px: 3,
             color: 'common.white',
-            background: 'radial-gradient(circle at 50% 46%, rgba(45, 212, 191, 0.32), transparent 34%), linear-gradient(145deg, #312e81, #4338ca 62%, #0f766e)',
+            background: 'radial-gradient(circle at 50% 46%, rgba(64, 199, 174, 0.25), transparent 34%), linear-gradient(145deg, #0b1f33, #0f766e 62%, #2563eb)',
           }}
         >
           <Stack spacing={2.5} sx={{ alignItems: 'center', textAlign: 'center' }}>

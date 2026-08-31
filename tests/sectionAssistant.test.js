@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { assistantSectionOrder, getAssistantRecommendation, getAssistantStorageKey, getNextAssistantSection, getSectionGuide } from '../src/lib/sectionAssistant'
-import { assistantLanguages, createVoiceGuideText, getAssistantCopy, getAssistantFeedbackKey, localizeRecommendation, localizeSectionGuide, searchApprovedHelp } from '../src/lib/assistantKnowledge'
+import { assistantLanguages, createVoiceGuideText, getAssistantCopy, getAssistantFeedbackKey, localizeRecommendation, localizeSectionGuide, PRIMARY_ASSISTANT_LANGUAGE, searchApprovedHelp } from '../src/lib/assistantKnowledge'
+import { isUnsafeAssistantQuery } from '../src/lib/assistantSafety'
 
 describe('section assistant', () => {
   it('provides guidance for every signed-in app section', () => {
@@ -27,10 +28,20 @@ describe('section assistant', () => {
 
   it('supports approved help in every configured language', () => {
     expect(assistantLanguages.map((language) => language.id)).toEqual(['en', 'hi', 'ta'])
+    expect(PRIMARY_ASSISTANT_LANGUAGE).toBe('en')
+    expect(assistantLanguages[0].primary).toBe(true)
     expect(searchApprovedHelp('How do I add a medicine?', 'en')).toContain('Open Medicines')
     expect(searchApprovedHelp('दवा कैसे जोड़ें?', 'hi')).toContain('दवाएँ')
     expect(searchApprovedHelp('மருந்து சேர்ப்பது எப்படி?', 'ta')).toContain('மருந்துகள்')
     expect(searchApprovedHelp('diagnose this rash', 'en')).toBeNull()
+  })
+
+  it('identifies medical advice requests before approved-help matching', () => {
+    expect(isUnsafeAssistantQuery('Should I increase my dose?')).toBe(true)
+    expect(isUnsafeAssistantQuery('Can you diagnose this condition?')).toBe(true)
+    expect(isUnsafeAssistantQuery('दवा की खुराक बदल दूँ?')).toBe(true)
+    expect(isUnsafeAssistantQuery('How do I add a medicine?')).toBe(false)
+    expect(getAssistantCopy('en').unsafe).toContain('diagnose')
   })
 
   it('localizes section and voice guidance without changing the base guide', () => {

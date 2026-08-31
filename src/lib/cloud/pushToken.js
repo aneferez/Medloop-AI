@@ -29,7 +29,7 @@ async function loadPushPlugin() {
 //
 // status: 'unavailable' | 'plugin-missing' | 'denied' | 'registering'
 //         | 'registered' | 'send-failed' | 'error'
-export async function initPushNotifications(user, { onStatus = () => {}, onToken = () => {} } = {}) {
+export async function initPushNotifications(user, { onStatus = () => {}, onToken = () => {}, onAlert = () => {} } = {}) {
   if (!isCloudEnabled() || !isNativePlatform()) {
     onStatus('unavailable')
     return () => {}
@@ -64,6 +64,20 @@ export async function initPushNotifications(user, { onStatus = () => {}, onToken
       }
     }))
     handles.push(await Push.addListener('registrationError', () => onStatus('error')))
+    const hydrateAlert = async (notification) => {
+      const alertId = notification?.data?.alertId || notification?.notification?.data?.alertId
+      if (!alertId) return
+      try {
+        const session = await ensureCloudSession(user)
+        const result = await cloudApi.alerts.list(session.token)
+        const alert = (result?.alerts || []).find((item) => String(item.id) === String(alertId))
+        onAlert(alert || { id: alertId, title: 'New care update', detail: 'Open Alerts to view the secure update.' })
+      } catch {
+        onAlert({ id: alertId, title: 'New care update', detail: 'Open Alerts to view the secure update.' })
+      }
+    }
+    handles.push(await Push.addListener('pushNotificationReceived', hydrateAlert))
+    handles.push(await Push.addListener('pushNotificationActionPerformed', (event) => hydrateAlert(event?.notification)))
 
     await Push.register()
     onStatus('registering')

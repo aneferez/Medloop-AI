@@ -12,7 +12,7 @@
 | Target / compile SDK | 36 |
 | Gradle wrapper | 8.14.3 |
 | Web asset directory | `dist/` |
-| Android WebView scheme | `http` (local Capacitor origin, not a remote cleartext server) |
+| Android WebView scheme | `https` (secure local Capacitor origin) |
 
 Before every distribution build, increment `versionCode` and set the intended `versionName` in `android/app/build.gradle`; keep `package.json`, release filenames/scripts, release notes, and documentation aligned.
 
@@ -113,7 +113,7 @@ The automated portion installs/replaces the app, launches it, checks for a runni
 1. Complete all release acceptance gates.
 2. Upload the versioned AAB to an internal testing track first.
 3. Confirm Play App Signing/upload-key status and that version code 15 (or the new incremented code) is unused.
-4. Complete the Data safety form based on [SECURITY.md](SECURITY.md), including explicit backup/message-sharing behavior and the absence of a MedLoop backend.
+4. Complete the Data safety form based on [SECURITY.md](SECURITY.md) and the actual deployment mode, including explicit backup/message-sharing behavior and any enabled cloud gateway/data storage.
 5. Provide the hosted privacy-policy and account-deletion URLs required by the chosen distribution setup; repository source pages alone are not public URLs.
 6. Supply store listing, content rating, target audience, medical disclaimer, screenshots, app icon, contact details, and testing instructions.
 7. Install the Play-delivered build from internal testing and repeat core flows because Play processing/signing can differ from a locally installed APK.

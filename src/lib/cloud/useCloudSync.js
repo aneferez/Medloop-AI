@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { isCloudEnabled } from './config.js'
+import { CLOUD_API_CONFIG_ERROR, isCloudEnabled } from './config.js'
 import { ensureCloudSession } from './session.js'
 import { buildSyncSnapshot, mergeCloudSnapshot } from './mappers.js'
 import { cloudApi } from './apiClient.js'
@@ -10,11 +10,11 @@ import { cloudApi } from './apiClient.js'
 // VITE_MEDLOOP_API_URL is unset, this is a no-op returning 'disabled'.
 //
 // Returns { status, syncNow }, where status is one of
-// 'disabled' | 'connecting' | 'syncing' | 'synced' | 'offline'. syncNow pushes
+// 'disabled' | 'config_error' | 'connecting' | 'syncing' | 'synced' | 'offline'. syncNow pushes
 // immediately rather than waiting out the debounce — file uploads need the
 // prescription row to exist server-side before they can attach to it.
 export function useCloudSync({ user, state, accountReady, onAdopt }) {
-  const [status, setStatus] = useState(() => (isCloudEnabled() ? 'connecting' : 'disabled'))
+  const [status, setStatus] = useState(() => (isCloudEnabled() ? 'connecting' : CLOUD_API_CONFIG_ERROR ? 'config_error' : 'disabled'))
   const sessionRef = useRef(null)
   const stateRef = useRef(state)
   const timerRef = useRef(null)
@@ -63,7 +63,7 @@ export function useCloudSync({ user, state, accountReady, onAdopt }) {
   // Establish (or drop) the cloud session as the signed-in account changes.
   useEffect(() => {
     if (!isCloudEnabled()) {
-      setStatus('disabled')
+      setStatus(CLOUD_API_CONFIG_ERROR ? 'config_error' : 'disabled')
       return undefined
     }
     if (!accountReady || !user) {
@@ -111,6 +111,7 @@ export function cloudStatusLabel(status) {
     case 'synced': return 'cloud synced'
     case 'connecting': return 'connecting…'
     case 'offline': return 'local only (offline)'
+    case 'config_error': return 'cloud config blocked'
     default: return 'local only'
   }
 }

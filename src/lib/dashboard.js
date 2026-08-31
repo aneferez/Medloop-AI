@@ -1,6 +1,7 @@
 import { getMedicineDoses } from './medicineSchedule'
 
 export const DASHBOARD_VARIANTS = Object.freeze([
+  { id: 'ritual', label: 'Ritual' },
   { id: 'halo', label: 'Halo' },
   { id: 'timeline', label: 'Timeline' },
   { id: 'companion', label: 'Companion' },

@@ -46,9 +46,57 @@ function createUser(account) {
     uid: account.uid,
     email: account.email,
     displayName: account.displayName || account.email,
-    emailVerified: true,
+    emailVerified: account.emailVerified !== false,
+    authProvider: account.authProvider || 'local',
     providerData: [{ providerId: 'password' }],
   }
+}
+
+// Creates or updates the encrypted local shadow used by the local-first UI
+// after a server account signs in. The server password is never stored here;
+// the random shadow password only protects the local cache from other local
+// account entries and is not used for cloud authentication.
+export const adoptServerUser = async ({ uid, email, displayName = '', emailVerified = false }) => {
+  const normalizedEmail = normalizeEmail(email)
+  if (!normalizedEmail) throw createAuthError('auth/invalid-email', 'A server account email is required.')
+  const accounts = await readAccounts()
+  const existing = accounts[normalizedEmail]
+  let account = existing
+  if (!account) {
+    const salt = createSalt()
+    account = {
+      uid,
+      email: normalizedEmail,
+      displayName: toText(displayName || normalizedEmail).slice(0, 60),
+      passwordSalt: salt,
+      passwordHash: await hashPassword(createSalt(), salt),
+      passwordAlgorithm: 'pbkdf2-sha256',
+      passwordIterations: PASSWORD_ITERATIONS,
+      createdAt: new Date().toISOString(),
+    }
+  }
+  accounts[normalizedEmail] = {
+    ...account,
+    uid: uid || account.uid,
+    displayName: toText(displayName || account.displayName || normalizedEmail).slice(0, 60),
+    emailVerified: Boolean(emailVerified),
+    authProvider: 'server',
+  }
+  await writeAccounts(accounts)
+  await setSecureValue(SESSION_KEY, { email: normalizedEmail })
+  await notifyAuthState()
+  return { user: createUser(accounts[normalizedEmail]) }
+}
+
+export const removeCurrentLocalAccount = async () => {
+  const account = await readCurrentAccount()
+  if (!account) return { deleted: false }
+  const accounts = await readAccounts()
+  delete accounts[account.email]
+  await writeAccounts(accounts)
+  await removeSecureValue(SESSION_KEY)
+  await notifyAuthState()
+  return { deleted: true }
 }
 
 async function notifyAuthState() {

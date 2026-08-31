@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { emergencyCallLink, hasValidPhone, selectPrimaryContactLocal } from '../src/lib/cloud/emergencySos'
+import { getDefaultEmergencyCardMemberId, getEmergencyCardMedicines, selectEmergencyCardMember } from '../src/lib/emergencyCard'
 
 const member = (over = {}) => ({ id: 'm', name: 'Contact', alertLevel: 'Level 3', phone: '', ...over })
 
@@ -44,5 +45,29 @@ describe('emergency SOS — call link', () => {
   it('validates phone presence', () => {
     expect(hasValidPhone({ phone: '+14155550123' })).toBe(true)
     expect(hasValidPhone({ phone: 'nope' })).toBe(false)
+  })
+})
+
+describe('emergency card — selected patient', () => {
+  it('uses the explicit patient marker instead of list order', () => {
+    const members = [
+      { id: 'caregiver', name: 'Caregiver', alertLevel: 'Level 1' },
+      { id: 'patient', name: 'Patient', isPatient: true },
+    ]
+    expect(getDefaultEmergencyCardMemberId(members)).toBe('patient')
+    expect(selectEmergencyCardMember(members).id).toBe('patient')
+  })
+
+  it('requires an explicit selection when multiple profiles have no patient marker', () => {
+    const members = [{ id: 'a', name: 'A' }, { id: 'b', name: 'B' }]
+    expect(getDefaultEmergencyCardMemberId(members)).toBeNull()
+    expect(selectEmergencyCardMember(members)).toBeNull()
+    expect(selectEmergencyCardMember(members, 'b').name).toBe('B')
+  })
+
+  it('filters medicines to the selected person', () => {
+    const medicines = [{ id: 'm1', memberId: 'a', name: 'A medicine' }, { id: 'm2', memberId: 'b', name: 'B medicine' }]
+    expect(getEmergencyCardMedicines(medicines, 'b')).toEqual([medicines[1]])
+    expect(getEmergencyCardMedicines(medicines, null)).toEqual([])
   })
 })

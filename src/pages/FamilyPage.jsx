@@ -1,8 +1,9 @@
 import { MessageCircle, UserPlus, X } from 'lucide-react'
 import GuidedFormAssistant from '../components/GuidedFormAssistant'
 import RecordActions from '../components/RecordActions'
+import CaregiverNetworkPanel from '../components/CaregiverNetworkPanel'
 
-function FamilyPage({ members, medicines, familyForm, setFamilyForm, saveFamilyMember, editFamilyMember, removeFamilyMember, resetFamilyForm, prepareRefillAlert, formFeedback }) {
+function FamilyPage({ members, medicines, familyForm, setFamilyForm, saveFamilyMember, editFamilyMember, removeFamilyMember, resetFamilyForm, prepareRefillAlert, formFeedback, user, cloudSyncNow }) {
   const assistantSteps = [
     { title: 'Who are you adding?', prompt: 'Start with the family member or caregiver’s name.', fields: [{ field: 'name', label: 'Name', placeholder: 'Full name', required: true }, { field: 'relationship', label: 'Relationship', placeholder: 'Example: Mother' }] },
     { title: 'Add contact details if needed', prompt: 'Both fields are optional. Use international format for user-reviewed message drafts.', fields: [{ field: 'phone', label: 'SMS phone', type: 'tel', inputMode: 'tel', placeholder: '+919876543210' }, { field: 'whatsappNumber', label: 'WhatsApp number', type: 'tel', inputMode: 'tel', placeholder: '+919876543210' }], hint: 'MedLoop never sends SMS or WhatsApp messages automatically.' },
@@ -53,6 +54,7 @@ function FamilyPage({ members, medicines, familyForm, setFamilyForm, saveFamilyM
           </div>
         )}
       </section>
+      <CaregiverNetworkPanel user={user} members={members} cloudSyncNow={cloudSyncNow} />
     </section>
   )
 }

@@ -95,6 +95,12 @@ export function settingsToCloud(settings = {}) {
     pushEnabled: Boolean(settings.notificationsEnabled),
     whatsappEnabled: Boolean(settings.whatsappAlerts),
     emailEnabled: false,
+    timezone: settings.timezone || 'Asia/Kolkata',
+    doseGraceMinutes: Number.isInteger(settings.doseGraceMinutes) ? settings.doseGraceMinutes : 15,
+    l2EscalationMinutes: Number.isInteger(settings.l2EscalationMinutes) ? settings.l2EscalationMinutes : 30,
+    escalationEnabled: settings.escalationEnabled !== false,
+    consentVersion: settings.consentVersion || null,
+    consentAcceptedAt: settings.consentAcceptedAt || null,
   }
 }
 

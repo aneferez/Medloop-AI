@@ -55,6 +55,8 @@ describe('cloud mappers — dose logs + settings', () => {
   it('maps local notification settings to cloud channel flags', () => {
     expect(settingsToCloud({ notificationsEnabled: true, whatsappAlerts: true, reminderLeadMinutes: 15 })).toEqual({
       reminderLeadMinutes: 15, pushEnabled: true, whatsappEnabled: true, emailEnabled: false,
+      timezone: 'Asia/Kolkata', doseGraceMinutes: 15, l2EscalationMinutes: 30,
+      escalationEnabled: true, consentVersion: null, consentAcceptedAt: null,
     })
   })
 })
@@ -75,7 +77,11 @@ describe('cloud mappers — snapshot', () => {
 
   it('tolerates an empty/partial state', () => {
     const snapshot = buildSyncSnapshot({})
-    expect(snapshot).toEqual({ familyMembers: [], medicines: [], prescriptions: [], appointments: [], doseLogs: [], settings: { reminderLeadMinutes: 0, pushEnabled: false, whatsappEnabled: false, emailEnabled: false } })
+    expect(snapshot).toEqual({ familyMembers: [], medicines: [], prescriptions: [], appointments: [], doseLogs: [], settings: {
+      reminderLeadMinutes: 0, pushEnabled: false, whatsappEnabled: false, emailEnabled: false,
+      timezone: 'Asia/Kolkata', doseGraceMinutes: 15, l2EscalationMinutes: 30,
+      escalationEnabled: true, consentVersion: null, consentAcceptedAt: null,
+    } })
   })
 })
 

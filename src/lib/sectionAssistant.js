@@ -40,8 +40,8 @@ const sectionGuides = {
   prescriptions: {
     label: 'Prescriptions',
     title: 'Keep prescription records together',
-    description: 'Save the prescriber, clinic, notes, and an optional camera or gallery image on this device.',
-    tips: ['Make sure the full page is visible and readable.', 'Do not use an image as a substitute for professional advice.', 'Prescription images stay in local app storage.'],
+    description: 'Save the prescriber, clinic, written notes, and the prescription image for accurate reference.',
+    tips: ['Make sure the full page is visible and readable.', 'Do not use an image as a substitute for professional advice.', 'Review the privacy notice before syncing prescription images.'],
   },
   alerts: {
     label: 'Alerts',
@@ -76,8 +76,8 @@ const sectionGuides = {
   legal: {
     label: 'Privacy & Safety',
     title: 'Know what MedLoop can and cannot do',
-    description: 'Review local data handling, reminder limitations, the medical disclaimer, and account-deletion information.',
-    tips: ['MedLoop is not an emergency service.', 'It does not diagnose or recommend treatment.', 'Your health records are designed to remain on this device.'],
+    description: 'Review device and cloud data handling, reminder limitations, the medical disclaimer, and account-deletion information.',
+    tips: ['MedLoop is not an emergency service.', 'It does not diagnose or recommend treatment.', 'Review where your records are stored before enabling sync.'],
   },
 }
 

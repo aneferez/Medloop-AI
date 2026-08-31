@@ -2,7 +2,7 @@
 
 ## System overview
 
-MedLoop is a single-device application. React owns UI and domain state; Capacitor bridges the web runtime to Android services. There is no HTTP API, application server, cloud database, or background worker owned by the project.
+MedLoop is local-first. React owns UI and domain state; Capacitor bridges the web runtime to Android services. An optional Cloudflare Worker/D1/R2/FCM tier provides authenticated device sync, family coordination, prescription file storage, push delivery, and scheduled jobs when `VITE_MEDLOOP_API_URL` is configured. Offline mode remains usable without that tier.
 
 ```mermaid
 flowchart LR
@@ -13,6 +13,10 @@ flowchart LR
   R --> C["Camera / Photo Library"]
   R --> F["Filesystem + Share sheet\nencrypted backup"]
   R --> M["SMS / WhatsApp draft URI"]
+  R -. optional HTTPS .-> G["Cloudflare Worker API"]
+  G --> D["D1 records"]
+  G --> B["R2 prescription files"]
+  G --> P["FCM push delivery"]
 ```
 
 ## Runtime composition
@@ -111,7 +115,7 @@ Created only for Taken and Missed actions. Fields include record/medicine IDs, m
 
 Accounts exist only on the current installation. Email is normalized and unique on-device. Passwords are salted and derived with PBKDF2-SHA-256, 210,000 iterations, and a 256-bit output. Legacy SHA-256 password records are upgraded after a successful login. Password comparison is constant-work over equal-length strings.
 
-The account record exposes a Firebase-like user shape to keep UI integration simple, but Firebase is not used. There is no remote identity, email verification, authorization server, or password-reset service.
+The offline account record exposes a Firebase-like user shape to keep UI integration simple. It is not Firebase Auth. When the optional cloud tier is enabled, the gateway maintains device sessions and its own server-side account/auth flows; the frontend must not describe offline login as email verification or cloud identity proof.
 
 ## Media storage
 
@@ -146,4 +150,4 @@ Notification callbacks update the same React/domain functions as on-screen actio
 
 ## External boundaries
 
-MedLoop uses Android OS services only: secure storage, notifications, camera/photo picker, filesystem cache/share sheet, and URI handling for messaging apps. No application data is intentionally transmitted to a MedLoop-controlled endpoint. A user may explicitly export/share a backup or open a message draft, at which point the chosen external app becomes a separate privacy boundary.
+In offline mode, MedLoop uses Android OS services only: secure storage, notifications, camera/photo picker, filesystem cache/share sheet, and URI handling for messaging apps. With the optional cloud tier, authenticated snapshots, family coordination records, push metadata, and prescription files may be transmitted to the configured gateway. A user may also explicitly export/share a backup or open a message draft, at which point the chosen external app becomes a separate privacy boundary.

@@ -15,9 +15,9 @@ const config: CapacitorConfig = {
     },
   },
   server: {
-    // Use a fresh local origin for v1.0.1 so broken service-worker caches from
-    // the first APK cannot keep serving its failed JavaScript bundle.
-    androidScheme: 'http',
+    // Keep the embedded production origin secure. Stale web assets are handled
+    // by versioned builds rather than enabling cleartext HTTP in the WebView.
+    androidScheme: 'https',
   },
 }
 

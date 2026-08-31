@@ -33,10 +33,11 @@ describe('dashboard design collection', () => {
     expect(getDoseSummary(doses)).toEqual({ taken: 1, missed: 1, remaining: 1, total: 3 })
   })
 
-  it('persists only supported dashboard styles and safely falls back to Halo', () => {
+  it('persists only supported dashboard styles and safely falls back to Ritual', () => {
+    expect(normalizeDashboardVariant('ritual')).toBe('ritual')
     expect(normalizeDashboardVariant('timeline')).toBe('timeline')
     expect(normalizeDashboardVariant('unknown')).toBe('halo')
     expect(sanitizeSettings({ dashboardVariant: 'companion' }).dashboardVariant).toBe('companion')
-    expect(sanitizeSettings({ dashboardVariant: 'unknown' }).dashboardVariant).toBe('halo')
+    expect(sanitizeSettings({ dashboardVariant: 'unknown' }).dashboardVariant).toBe('ritual')
   })
 })

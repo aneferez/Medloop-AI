@@ -1,6 +1,6 @@
 # MedLoop AI
 
-MedLoop AI is a local-first medicine coordination application built with React, Vite, and Capacitor for Android. It manages medicine schedules, dose history, family contacts, appointments, prescriptions, stock levels, local reminders, and encrypted user-controlled backups without an application server.
+MedLoop AI is a local-first medicine coordination application built with React, Vite, and Capacitor for Android. It manages medicine schedules, dose history, family contacts, appointments, prescriptions, stock levels, local reminders, and encrypted user-controlled backups. An optional Cloudflare Worker/D1/R2/FCM tier adds authenticated device sync, family coordination, prescription file storage, and push delivery when explicitly configured.
 
 > MedLoop AI is an organization and reminder tool. It is not a diagnostic, treatment, emergency-monitoring, or clinical decision system.
 
@@ -11,7 +11,7 @@ MedLoop AI is a local-first medicine coordination application built with React, 
 - Minimum Android version: API 24 (Android 7.0)
 - Target/compile SDK: API 36
 - Primary platform: Android; the React interface also runs in a browser for development
-- Data model: local-only, per-account records with no backend or cloud synchronization
+- Data model: local-first, per-account records with an optional Cloudflare Worker/D1/R2/FCM cloud tier
 - Release outputs: signed APK and AAB in `artifacts/`
 
 ## Documentation
@@ -89,11 +89,11 @@ npm run android:release
 
 Assistant recordings are loaded from `public/audio/assistant/<language>/<section>.mp3` and work offline after they are bundled into the APK. To prefer an online mirror with automatic offline and device-speech fallback, copy `.env.example` to `.env` and set `VITE_ASSISTANT_AUDIO_BASE_URL` to the static host root.
 
-The current application has no required `.env` values, API keys, database URL, Firebase project, or paid service dependency. Do not add secrets to source control. Android release signing uses ignored local files under `android/keystore/` and `android/keystore.properties`; see the [Android release guide](docs/ANDROID_RELEASE.md).
+The application has no required `.env` values for offline mode. Cloud sync is enabled only when `VITE_MEDLOOP_API_URL` points to the deployed HTTPS gateway; production builds reject insecure or localhost endpoints. The current cloud tier is Cloudflare Worker/D1/R2 with FCM for push delivery, not Firestore. Do not add secrets to source control. Android release signing uses ignored local files under `android/keystore/` and `android/keystore.properties`; see the [Android release guide](docs/ANDROID_RELEASE.md).
 
 ## Privacy summary
 
-Application records remain on the device. Media is held in the app's local IndexedDB database. Account credentials and structured account data use Capacitor Secure Storage. Exported backups use PBKDF2-SHA-256 key derivation and AES-256-GCM authenticated encryption. Android system backup and device-transfer extraction are disabled.
+Application records remain on the device in offline mode. When cloud sync is enabled, the account snapshot is mirrored to the configured gateway and prescription media may be stored in its file tier. Media is held in the app's local IndexedDB database. Account credentials and structured account data use Capacitor Secure Storage. Exported backups use PBKDF2-SHA-256 key derivation and AES-256-GCM authenticated encryption. Android system backup and device-transfer extraction are disabled.
 
 SMS and WhatsApp alerts are drafts: MedLoop opens the target app and the user reviews and sends the message. The app does not silently contact family members.
 
