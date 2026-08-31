@@ -33,5 +33,8 @@ desktop.ini
 android/keystore.properties
 android/keystore/
 
+# Firebase service-account credentials
+*-firebase-adminsdk-*.json
+
 # Local Firebase security-analysis notes
 .firebase-rules-audit.md
